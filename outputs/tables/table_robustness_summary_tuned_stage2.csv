@@ -1,0 +1,6 @@
+model,axis,robustness_auc
+sgd_stage3,fee_bps,-31390.751255231688
+sgd_stage3,latency_events,-5317.4074881688575
+sgd_stage3,spread_multiplier,-4473.584548461104
+sgd_stage3,depth_multiplier,-4458.780899485123
+sgd_stage3,latency_half_life,

@@ -1,0 +1,2 @@
+symbol,stage3_start,stage3_end,stage3_raw_files,stage2_raw_bytes,stage3_raw_bytes,raw_size_ratio_stage3_over_stage2,stage2_rows,estimated_stage3_rows,actual_stage3_audit_rows,current_stage2_artifact_bytes,estimated_stage3_core_artifact_bytes,lower_bound_required_free_bytes,current_free_bytes,stage3_partition_count,stage3_partition_days,ready_for_stage3_feature_build
+BTC-USDT,2024-01-01 00:00:00+00:00,2024-12-31 23:59:59+00:00,12,9704300766,22398431762,2.308093318838094,69532240,167753156,167753156,47071307334,113564015228,141955019035,40253206528,37,10,False

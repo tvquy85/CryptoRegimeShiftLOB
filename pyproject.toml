@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cryptoregimeshift-lob"
+version = "0.1.0"
+description = "BTC-first robust L2 regime-shift benchmark pipeline for ICDM 2026 experiments."
+requires-python = ">=3.11"
+dependencies = [
+  "numpy",
+  "pandas",
+  "pyarrow",
+  "polars",
+  "pyyaml",
+  "scikit-learn",
+  "scipy",
+  "matplotlib",
+  "joblib",
+  "torch",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"
+

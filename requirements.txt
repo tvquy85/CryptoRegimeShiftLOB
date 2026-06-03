@@ -1,0 +1,14 @@
+numpy
+pandas
+pyarrow
+polars
+pyyaml
+scikit-learn
+scipy
+matplotlib
+joblib
+torch
+xgboost
+lightgbm
+pytest
+

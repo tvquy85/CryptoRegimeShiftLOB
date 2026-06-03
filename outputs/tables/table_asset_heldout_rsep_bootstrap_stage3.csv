@@ -1,0 +1,3 @@
+direction,source_symbol,target_symbol,model,mean_diff,ci_low,ci_high,n_days,n_bootstrap
+btc_to_eth,BTC-USDT,ETH-USDT,asset_btc_to_eth_sgd,3681.4666468184178,3314.021626010795,4048.2033377365774,58,1000
+eth_to_btc,ETH-USDT,BTC-USDT,asset_eth_to_btc_sgd,39.27248171204891,34.076004380925085,44.52922650148431,65,1000

@@ -1,0 +1,109 @@
+models:
+  sgd:
+    class_returns:
+      DOWN: -0.00036214807187207043
+      FLAT: 1.924542942788321e-07
+      UP: 0.00036301242653280497
+    min_trade_days: 5
+    min_trades: 6953
+    selected_thresholds:
+      RSEP-full: 8.597223e-06
+      cost_aware_threshold: 2.7554975e-05
+      naive_threshold: 0.6
+    test_bootstrap_rsep_vs_cost_aware:
+      ci_high: 39.21761024140085
+      ci_low: 11.335093741216042
+      mean_diff: 23.589682784067765
+      n_bootstrap: 1000
+      n_days: 29
+    validation_objective: max_net_pnl_with_min_trades_and_min_trade_days
+  sgd_stage3:
+    class_returns:
+      DOWN: -0.00033045478630810976
+      FLAT: 7.906437105020814e-08
+      UP: 0.0003308548766653985
+    min_trade_days: 5
+    min_trades: 2396
+    selected_thresholds:
+      RSEP-full: 9.8641055e-05
+      cost_aware_threshold: 0.000127427957
+      naive_threshold: 0.8
+    test_bootstrap_rsep_vs_cost_aware:
+      ci_high: 77.22922570561714
+      ci_low: 59.67645950648641
+      mean_diff: 68.52514254066054
+      n_bootstrap: 1000
+      n_days: 65
+    validation_objective: max_net_pnl_with_min_trades_and_min_trade_days
+  tcn_gpu_stage3:
+    class_returns:
+      DOWN: -0.0003763778368011117
+      FLAT: 1.0288556495652301e-07
+      UP: 0.00037734321085736156
+    min_trade_days: 5
+    min_trades: 1677
+    selected_thresholds:
+      RSEP-full: 1.4391646e-05
+      cost_aware_threshold: 3.6714177e-05
+      naive_threshold: 0.6
+    test_bootstrap_rsep_vs_cost_aware:
+      ci_high: 3.5549921488370075
+      ci_low: 0.02291290598735801
+      mean_diff: 1.4950771386199053
+      n_bootstrap: 1000
+      n_days: 64
+    validation_objective: max_net_pnl_with_min_trades_and_min_trade_days
+  tcn_gpu_stage3_stride1:
+    class_returns:
+      DOWN: -0.0003763778368011117
+      FLAT: 1.0288556495652301e-07
+      UP: 0.00037734321085736156
+    min_trade_days: 5
+    min_trades: 2396
+    selected_thresholds:
+      RSEP-full: 1.1165357e-05
+      cost_aware_threshold: 3.6634694e-05
+      naive_threshold: 0.6
+    test_bootstrap_rsep_vs_cost_aware:
+      ci_high: 4.449435357469534
+      ci_low: -4.460466065997088
+      mean_diff: -0.4025987989057581
+      n_bootstrap: 1000
+      n_days: 65
+    validation_objective: max_net_pnl_with_min_trades_and_min_trade_days
+  xgboost_gpu:
+    class_returns:
+      DOWN: -0.00036214807187207043
+      FLAT: 1.924542942788321e-07
+      UP: 0.00036301242653280497
+    min_trade_days: 5
+    min_trades: 6953
+    selected_thresholds:
+      RSEP-full: 4.0323267e-05
+      cost_aware_threshold: 4.8199841e-05
+      naive_threshold: 0.5
+    test_bootstrap_rsep_vs_cost_aware:
+      ci_high: 2.472508278810918
+      ci_low: -2.878574437491309
+      mean_diff: -0.0489206822916421
+      n_bootstrap: 1000
+      n_days: 29
+    validation_objective: max_net_pnl_with_min_trades_and_min_trade_days
+  xgboost_gpu_stage3:
+    class_returns:
+      DOWN: -0.00033045478630810976
+      FLAT: 7.906437105020814e-08
+      UP: 0.0003308548766653985
+    min_trade_days: 5
+    min_trades: 2396
+    selected_thresholds:
+      RSEP-full: 3.2988377e-05
+      cost_aware_threshold: 3.8545637e-05
+      naive_threshold: 0.5
+    test_bootstrap_rsep_vs_cost_aware:
+      ci_high: 4.927118205265525
+      ci_low: 1.0723368611951716
+      mean_diff: 2.9415342854848308
+      n_bootstrap: 1000
+      n_days: 65
+    validation_objective: max_net_pnl_with_min_trades_and_min_trade_days

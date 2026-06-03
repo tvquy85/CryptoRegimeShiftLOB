@@ -1,0 +1,17 @@
+inherits: configs/models.yaml
+model_name: xgboost
+model_label: xgboost_gpu_stage3
+prediction_source: data/predictions/predictions.parquet
+prediction_output: data/predictions/predictions_stage3_xgboost_gpu.parquet
+xgboost_stage3:
+  train_sample_rows: 5000000
+  valid_sample_rows: 1000000
+  prediction_batch_size: 250000
+xgboost:
+  use_gpu: true
+  tree_method: hist
+  max_depth: 5
+  n_estimators: 150
+  learning_rate: 0.05
+  subsample: 0.9
+  colsample_bytree: 0.9

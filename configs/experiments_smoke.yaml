@@ -1,0 +1,16 @@
+inherits: configs/regimes.yaml
+split_output: data/splits/splits.parquet
+reports_output: data/reports
+tables_output: outputs/tables
+figures_output: outputs/figures
+paper_assets_output: outputs/paper_assets
+split:
+  strategy: chronological
+  train_fraction: 0.6
+  valid_fraction: 0.2
+stress_axes:
+  - fee_bps
+  - latency_events
+  - spread_multiplier
+  - depth_multiplier
+

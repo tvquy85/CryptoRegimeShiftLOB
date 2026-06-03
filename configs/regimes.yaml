@@ -1,0 +1,19 @@
+inherits: configs/features.yaml
+regime_output: data/regimes/regimes.parquet
+thresholds_output: data/regimes/regime_thresholds.json
+train_fraction_for_thresholds: 0.6
+quantiles:
+  low: 0.4
+  mid: 0.5
+  high: 0.7
+  very_high: 0.8
+  very_low: 0.1
+hybrid_taxonomy:
+  confidence_margin: 0.05
+  unknown_target_share: 0.15
+  daily_unknown_p90_target: 0.25
+  diagnostic_sample_size: 200000
+  random_seed: 7
+  cluster_components:
+    - 2
+    - 3

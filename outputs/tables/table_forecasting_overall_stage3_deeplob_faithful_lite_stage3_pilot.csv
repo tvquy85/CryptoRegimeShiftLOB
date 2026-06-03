@@ -1,0 +1,2 @@
+model,model_type,accuracy,macro_f1,weighted_f1,mcc,balanced_accuracy,n_rows,evaluation_scope
+deeplob_faithful_lite_stage3_pilot,deeplob_faithful_lite,0.519808,0.43369857421159647,0.5164677947565084,0.1605575771462028,0.44208930099722027,500000,temporal_pilot_sample

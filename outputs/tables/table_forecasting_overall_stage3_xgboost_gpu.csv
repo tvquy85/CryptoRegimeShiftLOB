@@ -1,0 +1,2 @@
+model,model_backend,accuracy,macro_f1,weighted_f1,mcc,balanced_accuracy,n_rows
+xgboost_gpu_stage3,xgboost_gpu,0.5676637040867222,0.4562407660052441,0.532080181021275,0.2363690740470592,0.45549578874128277,33550262

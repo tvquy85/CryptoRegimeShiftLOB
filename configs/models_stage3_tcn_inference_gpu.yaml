@@ -1,0 +1,36 @@
+inherits: configs/models_stage3_temporal_gpu.yaml
+model_label: tcn_gpu_stage3
+prediction_source: data/predictions/predictions.parquet
+prediction_output: data/predictions/predictions_stage3_tcn_gpu_execution_ready.parquet
+temporal_inference:
+  prediction_source: data/predictions/predictions.parquet
+  prediction_output: data/predictions/predictions_stage3_tcn_gpu_execution_ready.parquet
+  audit_output: audits/audit_stage3_9_tcn_gpu_execution_ready.md
+  checkpoint_path: outputs/checkpoints/stage3_8_tcn_gpu_pilot_btc_full2024_v001_tcn_gpu_stage3_pilot.pt
+  model_label: tcn_gpu_stage3
+  levels: 10
+  window: 100
+  source_batch_rows: 250000
+  eval_batch_windows: 0
+  batch_window_candidates:
+    - 2048
+    - 4096
+    - 8192
+    - 16384
+  compile_model: false
+  compile_mode: reduce-overhead
+  compile_benchmark_windows: 1024
+  mixed_precision: true
+  pin_memory: true
+  splits:
+    - train
+    - valid
+    - test
+  strides:
+    train: 10
+    valid: 10
+    test: 10
+  max_windows:
+    train: 1000000
+    valid:
+    test:

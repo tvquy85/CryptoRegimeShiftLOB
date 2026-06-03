@@ -1,0 +1,13 @@
+inherits: configs/experiments_full.yaml
+artifact_namespace: eth_usdt_stage3
+symbols:
+  - ETH-USDT
+feature_output: data/features/features_eth_stage3.parquet
+labels_output: data/labels/labels_eth_stage3.parquet
+regime_output: data/regimes/regimes_eth_stage3.parquet
+thresholds_output: data/regimes/regime_thresholds_eth_stage3.json
+split_output: data/splits/splits_eth_stage3.parquet
+asset_held_out:
+  enabled: true
+  status: eth_data_available
+

@@ -1,0 +1,31 @@
+inherits: configs/experiments_stage3_eth.yaml
+prediction_output: data/predictions/predictions_eth_stage3_sgd.parquet
+model_dir: outputs/checkpoints
+model_name: sgd
+model_label: sgd_eth_stage3
+random_seed: 7
+tabular_features:
+  - rel_spread
+  - microprice_deviation
+  - depth_imbalance_1
+  - depth_imbalance_5
+  - depth_imbalance_10
+  - ofi_1
+  - ofi_5
+  - realized_vol_20
+  - realized_vol_100
+  - spread_z_1m
+  - depth_z_1m
+  - liquidity_drought_score
+  - adverse_selection_score
+  - momentum_score
+  - choppiness_score
+train_valid_test:
+  train: train
+  valid: valid
+  test: test
+sgd:
+  alpha: 0.0001
+  max_iter: 2000
+  tol: 0.001
+

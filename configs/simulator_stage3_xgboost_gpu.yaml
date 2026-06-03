@@ -1,0 +1,5 @@
+inherits: configs/simulator.yaml
+model_label: xgboost_gpu_stage3
+prediction_source: data/predictions/predictions.parquet
+prediction_output: data/predictions/predictions_stage3_xgboost_gpu.parquet
+policy_tuning_sample_rows: 5000000

@@ -1,0 +1,25 @@
+inherits: configs/models_stage3_tcn_inference_gpu.yaml
+model_label: tcn_gpu_stage3_stride1
+prediction_source: data/predictions/predictions.parquet
+prediction_output: data/predictions/predictions_stage3_tcn_gpu_stride1_execution_ready.parquet
+temporal_inference:
+  prediction_source: data/predictions/predictions.parquet
+  prediction_output: data/predictions/predictions_stage3_tcn_gpu_stride1_execution_ready.parquet
+  audit_output: audits/audit_stage3_10_tcn_stride1_fairness_check.md
+  checkpoint_path: outputs/checkpoints/stage3_8_tcn_gpu_pilot_btc_full2024_v001_tcn_gpu_stage3_pilot.pt
+  model_label: tcn_gpu_stage3_stride1
+  compile_model: false
+  mixed_precision: true
+  pin_memory: true
+  splits:
+    - train
+    - valid
+    - test
+  strides:
+    train: 10
+    valid: 1
+    test: 1
+  max_windows:
+    train: 1000000
+    valid:
+    test:

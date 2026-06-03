@@ -1,0 +1,41 @@
+inherits: configs/models_stage3_eth_sgd.yaml
+simulator:
+  latency_events: 1
+  fee_bps: 1.0
+  spread_multiplier: 1.0
+  depth_multiplier: 1.0
+  partial_fill: true
+  min_fill_ratio: 0.5
+  trade_notional: 1000.0
+  cooldown_events: 3
+policies:
+  naive_threshold: 0.55
+  cost_aware_edge_threshold: 0.0
+  rsep:
+    theta_edge: 0.0
+    lambda_latency: 0.25
+    lambda_liquidity: 0.25
+    lambda_adverse: 0.25
+    lambda_regime: 0.15
+    max_turnover: 1.0
+stress_grid:
+  fee_bps:
+    - 0.0
+    - 1.0
+    - 2.0
+    - 5.0
+    - 10.0
+  latency_events:
+    - 0
+    - 1
+    - 5
+    - 10
+  spread_multiplier:
+    - 1.0
+    - 1.5
+    - 2.0
+  depth_multiplier:
+    - 1.0
+    - 0.75
+    - 0.5
+

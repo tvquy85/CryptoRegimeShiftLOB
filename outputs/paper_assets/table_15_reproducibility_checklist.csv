@@ -1,0 +1,14 @@
+item,status,artifact,stage,model_label,notes
+acceptance_bar,PASS,outputs/tables/table_acceptance_bar_stage3.csv,stage_3_full_scale,,Canonical Stage 3 artifact.
+claim_support_matrix,PASS,outputs/tables/table_claim_support_matrix_stage3.csv,stage_3_full_scale,,Canonical Stage 3 artifact.
+final_model_selection,PASS,outputs/tables/table_final_model_selection_stage3.csv,stage_3_full_scale,,Canonical Stage 3 artifact.
+model_comparison,PASS,outputs/tables/table_model_forecasting_execution_comparison_stage3.csv,stage_3_full_scale,,Canonical Stage 3 artifact.
+stress_comparison,PASS,outputs/tables/table_model_stress_comparison_stage3.csv,stage_3_full_scale,,Canonical Stage 3 artifact.
+bootstrap,PASS,outputs/tables/table_rsep_bootstrap_tuned_stage3.csv,stage_3_full_scale,,Canonical Stage 3 artifact.
+stage3_11_narrative,PASS,outputs/paper_assets/result_narrative_stage3_11_vi.md,stage_3_full_scale,,Canonical Stage 3 artifact.
+stage3_11_audit,PASS,audits/audit_stage3_11_icdm_evidence_hardening.md,stage_3_full_scale,,Canonical Stage 3 artifact.
+simulator_config,PASS,configs/simulator_stage3_tcn_stride1_gpu.yaml,stage_3_full_scale,,Canonical Stage 3 artifact.
+model_in_final_selection,PASS,outputs/tables/table_final_model_selection_stage3.csv,stage_3_full_scale,sgd_stage3,Model label expected in final model selection table.
+model_in_final_selection,PASS,outputs/tables/table_final_model_selection_stage3.csv,stage_3_full_scale,xgboost_gpu_stage3,Model label expected in final model selection table.
+model_in_final_selection,PASS,outputs/tables/table_final_model_selection_stage3.csv,stage_3_full_scale,tcn_gpu_stage3,Model label expected in final model selection table.
+model_in_final_selection,PASS,outputs/tables/table_final_model_selection_stage3.csv,stage_3_full_scale,tcn_gpu_stage3_stride1,Model label expected in final model selection table.

@@ -1,0 +1,47 @@
+project_root: .
+raw_data_root: ../data/full2024
+exchange: BINANCE
+symbols:
+  - BTC-USDT
+eth_dependency_expected: true
+file_glob: BOOK_{exchange}_{symbol}_*-2024.parquet
+timestamp_preference:
+  - origin_time
+  - received_time
+levels: 20
+sample_rows_per_partition: null
+partitioned_stage_feature_build: true
+reuse_partitioned_feature_parts: true
+stage_partition_months:
+  stage_2_medium_scale:
+    - JAN
+    - FEB
+    - MAR
+    - APR
+    - MAY
+stage_partition_windows:
+  stage_2_medium_scale:
+    - token: JUN_D01_D10
+      start: "2024-06-01T00:00:00Z"
+      end: "2024-06-10T23:59:59Z"
+    - token: JUN_D11_D20
+      start: "2024-06-11T00:00:00Z"
+      end: "2024-06-20T23:59:59Z"
+    - token: JUN_D21_D30
+      start: "2024-06-21T00:00:00Z"
+      end: "2024-06-30T23:59:59Z"
+stage_partition_day_windows:
+  stage_3_full_scale: 10
+stage_ranges:
+  stage_0_sanity_check:
+    start: "2024-01-06T00:00:00Z"
+    end: "2024-01-06T06:00:00Z"
+  stage_1_small_scale:
+    start: "2024-01-01T00:00:00Z"
+    end: "2024-02-29T23:59:59Z"
+  stage_2_medium_scale:
+    start: "2024-01-01T00:00:00Z"
+    end: "2024-06-30T23:59:59Z"
+  stage_3_full_scale:
+    start: "2024-01-01T00:00:00Z"
+    end: "2024-12-31T23:59:59Z"

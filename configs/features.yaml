@@ -1,0 +1,24 @@
+inherits: configs/data_crypto_lake.yaml
+feature_output: data/features/features.parquet
+labels_output: data/labels/labels.parquet
+include_tensor_columns: false
+eps: 1.0e-9
+depth_levels:
+  - 1
+  - 3
+  - 5
+  - 10
+  - 20
+event_horizons:
+  - 10
+  - 50
+  - 100
+event_windows:
+  - 20
+  - 100
+  - 500
+time_windows_seconds:
+  - 60
+fee_bps: 1.0
+slippage_buffer_multiplier: 0.5
+compact_storage: true

@@ -1,0 +1,2 @@
+model,mean_diff,ci_low,ci_high,n_days,n_bootstrap
+sgd_eth_stage3,28.649238058807292,16.48123921685924,43.242508457005066,58,1000

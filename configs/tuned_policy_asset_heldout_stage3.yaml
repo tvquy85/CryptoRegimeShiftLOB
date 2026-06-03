@@ -1,0 +1,45 @@
+directions:
+  btc_to_eth:
+    checkpoint: D:\LOBProj\DeepLOB\CryptoRegimeShift\outputs\checkpoints\stage_eth_asset_btc_to_eth_sgd_v001_sgd.joblib
+    class_returns_source_train:
+      DOWN: -0.00033045478630810976
+      FLAT: 7.906437105020814e-08
+      UP: 0.0003308548766653985
+    selected_thresholds:
+      RSEP-full: 9.8641055e-05
+      cost_aware_threshold: 0.000127427957
+      naive_threshold: 0.8
+    source_symbol: BTC-USDT
+    target_bootstrap_rsep_vs_cost_aware:
+      ci_high: 4048.2033377365783
+      ci_low: 3314.021626010795
+      mean_diff: 3681.4666468184178
+      n_bootstrap: 1000
+      n_days: 58
+    target_predictions: D:\LOBProj\DeepLOB\CryptoRegimeShift\data\predictions\predictions_asset_btc_to_eth_sgd.parquet
+    target_symbol: ETH-USDT
+    target_test_rows: 22882887
+    valid_rows_used_for_tuning: 4792895
+    validation_objective: source_valid_max_net_pnl_with_min_trades_and_min_trade_days
+  eth_to_btc:
+    checkpoint: D:\LOBProj\DeepLOB\CryptoRegimeShift\outputs\checkpoints\stage_eth_asset_eth_to_btc_sgd_v001_sgd.joblib
+    class_returns_source_train:
+      DOWN: -0.00039622874464839697
+      FLAT: 2.436586328258272e-07
+      UP: 0.00039695616578683257
+    selected_thresholds:
+      RSEP-full: 2.3792219e-05
+      cost_aware_threshold: 4.6384324e-05
+      naive_threshold: 0.6
+    source_symbol: ETH-USDT
+    target_bootstrap_rsep_vs_cost_aware:
+      ci_high: 44.52922650148431
+      ci_low: 34.076004380925085
+      mean_diff: 39.27248171204891
+      n_bootstrap: 1000
+      n_days: 65
+    target_predictions: D:\LOBProj\DeepLOB\CryptoRegimeShift\data\predictions\predictions_asset_eth_to_btc_sgd.parquet
+    target_symbol: BTC-USDT
+    target_test_rows: 33550262
+    valid_rows_used_for_tuning: 4576578
+    validation_objective: source_valid_max_net_pnl_with_min_trades_and_min_trade_days

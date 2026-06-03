@@ -1,0 +1,35 @@
+inherits: configs/models.yaml
+model_name: tcn
+temporal:
+  prediction_source: data/predictions/predictions.parquet
+  model_name: tcn
+  model_labels:
+    tcn: tcn_gpu_stage3_pilot
+    deeplob_faithful_lite: deeplob_faithful_lite_stage3_pilot
+  prediction_outputs:
+    tcn: data/predictions/predictions_stage3_tcn_gpu_pilot.parquet
+    deeplob_faithful_lite: data/predictions/predictions_stage3_deeplob_faithful_lite_pilot.parquet
+  levels: 10
+  window: 100
+  normalize_features: true
+  scaler_max_rows: 1000000
+  source_batch_rows: 250000
+  train_batch_windows: 1024
+  eval_batch_windows: 2048
+  hidden_dim: 64
+  deeplob_conv_channels: 16
+  deeplob_inception_channels: 32
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  epochs: 5
+  early_stopping_patience: 2
+  mixed_precision: true
+  strides:
+    train: 5
+    valid: 10
+    test: 10
+  max_windows:
+    train: 1000000
+    valid: 250000
+    test: 500000
+  prediction_train_windows: 0

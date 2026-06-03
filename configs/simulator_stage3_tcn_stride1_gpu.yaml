@@ -1,0 +1,5 @@
+inherits: configs/simulator.yaml
+model_label: tcn_gpu_stage3_stride1
+prediction_source: data/predictions/predictions.parquet
+prediction_output: data/predictions/predictions_stage3_tcn_gpu_stride1_execution_ready.parquet
+policy_tuning_sample_rows: 5000000

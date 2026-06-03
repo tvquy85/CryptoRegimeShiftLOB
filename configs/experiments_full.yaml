@@ -1,0 +1,16 @@
+inherits: configs/experiments_smoke.yaml
+stage_default: stage_3_full_scale
+walk_forward:
+  train_months:
+    - 3
+    - 6
+  valid_days: 14
+regime_held_out:
+  - LIQUIDITY_DROUGHT
+  - VOLATILE_ILLIQUID
+  - MOMENTUM_TOXIC
+  - CHOPPY_MEAN_REVERTING
+asset_held_out:
+  enabled: false
+  blocked_reason: ETH-USDT chưa hiện diện trong data/full2024
+

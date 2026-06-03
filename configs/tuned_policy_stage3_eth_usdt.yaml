@@ -1,0 +1,19 @@
+models:
+  sgd_eth_stage3:
+    class_returns:
+      DOWN: -0.00039622874464839697
+      FLAT: 2.436586328258272e-07
+      UP: 0.00039695616578683257
+    min_trade_days: 5
+    min_trades: 2288
+    selected_thresholds:
+      RSEP-full: 2.3792219e-05
+      cost_aware_threshold: 4.6384324e-05
+      naive_threshold: 0.6
+    test_bootstrap_rsep_vs_cost_aware:
+      ci_high: 43.242508457005066
+      ci_low: 16.48123921685924
+      mean_diff: 28.649238058807292
+      n_bootstrap: 1000
+      n_days: 58
+    validation_objective: max_net_pnl_with_min_trades_and_min_trade_days
