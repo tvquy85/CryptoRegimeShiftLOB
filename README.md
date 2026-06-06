@@ -78,7 +78,6 @@ The committed `main.pdf` is the reviewer-facing 10-page Applied Track draft.
 ## Repository Layout
 
 ```text
-Paper_ICDM_2026/          IEEE paper source, figures, bibliography, PDF
 supplementary_artifact/   self-contained reviewer artifact package
 src/                      benchmark implementation modules
 scripts/                  full-pipeline and audit scripts
