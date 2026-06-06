@@ -325,11 +325,18 @@ TCN được dùng để kiểm tra liệu temporal window model có tạo lợi
 
 Insight: TCN có macro-F1 cao nhất nhưng MCC thấp hơn SGD/XGBoost. Khi đưa qua execution, RSEP không thắng cost-aware trên TCN stride-1. Đây là negative evidence có giá trị.
 
-### 6.4 DeepLOB-lite pilot
+### 6.4 DeepLOB CNN-LSTM và LOB-Transformer pilot
 
-DeepLOB-lite đã được xem như baseline phụ theo hướng literature LOB. Kết quả không được chọn làm narrative chính hiện tại.
+Để baseline suite không bị quá mỏng so với literature LOB, pipeline đã bổ sung hai model deep LOB native PyTorch:
 
-Insight: Không nên mở rộng deep baseline chỉ để làm đẹp số nếu evidence đã đủ cho benchmark/failure-analysis.
+- `deeplob_stage3_pilot`: DeepLOB-style CNN + inception + LSTM, lấy cảm hứng từ DeepLOB/LOBFrame nhưng dùng input chuẩn của repo `[batch, 100, 40]`.
+- `lob_transformer_stage3_pilot`: lightweight LOB-Transformer, dùng convolutional LOB stem rồi TransformerEncoder theo trục thời gian.
+
+Hai model này dùng cùng tensor causal với TCN: 100 snapshot gần nhất, 10 LOB levels đầu, mỗi level gồm relative ask price, log ask size, relative bid price, log bid size. Mục tiêu của chúng là trả lời reviewer rằng benchmark đã có baseline deep LOB canonical và attention-style, không chỉ có tabular + TCN.
+
+Scope hiện tại: DeepLOB/Transformer được xem là pilot/smoke baseline nếu chưa có full-row execution-ready artifact. Không được tự chèn số thủ công vào paper; nếu số xuất hiện trong paper thì phải lấy từ artifact generated. Nếu pilot yếu hoặc quá tốn compute để mở full-year, đó là limitation hợp lệ, miễn là ghi rõ thay vì che giấu.
+
+Insight: Không nên mở rộng deep baseline chỉ để làm đẹp số nếu evidence đã đủ cho benchmark/failure-analysis. Giá trị chính của paper vẫn là protocol regime-aware + forecast-to-execution degradation; deep model là kiểm tra fairness, không phải claim SOTA architecture.
 
 ## 7. Execution simulator, policy tuning và RSEP
 

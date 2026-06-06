@@ -1,23 +1,23 @@
 # Audit Stage 3.8: Temporal GPU Pilot
 
 - `run_id`: xem metadata tương ứng trong `outputs/logs`
-- Model: `lob_transformer_stage3_pilot` (`lob_transformer`)
+- Model: `deeplob_cnn_lstm_stage3_full` (`deeplob`)
 - Device: `cuda`
 - Mục tiêu: kiểm tra liệu temporal/deep baseline kiểu DeepLOB/TCN có cải thiện forecasting so với SGD/XGBoost full-year hay không, trước khi mở full inference/execution.
 
 ## Artifact
 
-- Checkpoint: `D:\LOBProj\DeepLOB\CryptoRegimeShift\outputs\checkpoints\stage3_p0_06_lob_transformer_smoke_v001_lob_transformer_stage3_pilot.pt`
-- Predictions: `D:\LOBProj\DeepLOB\CryptoRegimeShift\data\predictions\predictions_stage3_lob_transformer_pilot.parquet`
+- Checkpoint: `D:\LOBProj\DeepLOB\CryptoRegimeShift\outputs\checkpoints\stage3_17_deeplob_full_smoke_btc_purged_v001_deeplob_cnn_lstm_stage3_full.pt`
+- Predictions: `D:\LOBProj\DeepLOB\CryptoRegimeShift\data\predictions\predictions_stage3_deeplob_full_stride10_forecasting.parquet`
 - Prediction rows: `15000`
 
 ## Kết quả forecasting test pilot
 
-- accuracy: `0.5788`
-- macro-F1: `0.24440503335866903`
-- weighted-F1: `0.42460486445401574`
-- MCC: `-0.010240336475152425`
-- balanced accuracy: `0.33316065158579405`
+- accuracy: `0.5804`
+- macro-F1: `0.2448325318484772`
+- weighted-F1: `0.42630240445456846`
+- MCC: `0.0`
+- balanced accuracy: `0.3333333333333333`
 - test rows: `10000`
 - best epoch: `1`
 - best validation macro-F1: `0.31057935405761494`

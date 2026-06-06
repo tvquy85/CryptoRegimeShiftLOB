@@ -1,0 +1,6 @@
+model_family,full_row_prediction_artifact,execution_replay_artifact,role_in_paper,reason_for_inclusion_exclusion
+SGD,yes,yes,diagnostic linear control,locked full-row prediction and replay artifacts support main forecast-to-execution claims
+XGBoost,yes,yes,strong tabular nonlinear baseline,locked full-row prediction and replay artifacts support model-comparison diagnostics
+TCN,yes,yes,temporal neural baseline,locked full-row stride-1 prediction and replay artifacts provide temporal negative evidence
+DeepLOB-style CNN-LSTM,controlled subsample forecasting only,no,canonical LOB architecture coverage,controlled purged subsample artifact generated; not used for main claims because no locked full-row replay artifact
+Lightweight Transformer,smoke/interface only,no,modern sequence interface coverage,shape/smoke coverage only; not used for main claims without locked full-row prediction and replay artifacts

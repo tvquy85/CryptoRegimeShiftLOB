@@ -1,0 +1,3 @@
+symbol,n_rows,unknown_rows,unknown_share,daily_unknown_p90,n_days,threshold_count,threshold_source,threshold_artifact,status,notes
+BTC-USDT,167751306,22121835,0.13187280342246635,0.15423134566300947,366,23,first_60pct_chronological_train_prefix,D:\LOBProj\DeepLOB\CryptoRegimeShift\data\regimes\regime_thresholds.json,PASS,Regimes are diagnostic labels; UNKNOWN is retained and reported.
+ETH-USDT,114414433,14507971,0.1268019306620171,0.1559054763313586,366,23,first_60pct_chronological_train_prefix,D:\LOBProj\DeepLOB\CryptoRegimeShift\data\regimes\regime_thresholds_eth_stage3.json,PASS,Regimes are diagnostic labels; UNKNOWN is retained and reported.

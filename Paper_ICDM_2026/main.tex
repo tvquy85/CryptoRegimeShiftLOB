@@ -15,51 +15,70 @@
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
 
-\title{CryptoRegimeShift-LOB: A Regime-Aware L2 Crypto Benchmark for Forecast-to-Execution Degradation}
+\title{CryptoRegimeShift-LOB: A Crypto Level-2 Benchmark for Auditing Forecast-to-Execution Degradation}
 
-\author{\IEEEauthorblockN{Anonymous Authors}}
+\author{\IEEEauthorblockN{Quy Tran}
+\IEEEauthorblockA{Faculty of Information Technology\\
+University of Science, Ho Chi Minh City\\
+Vietnam National University, Ho Chi Minh City, Vietnam\\
+tvquy@fit.hcmus.edu.vn}}
 
 \maketitle
 
 \begin{abstract}
-Limit order book (LOB) forecasting models are often evaluated using directional metrics, yet such metrics can overstate deployable signal when spreads, fees, latency, visible-depth constraints, and regime shifts erode short-horizon edge. We present CryptoRegimeShift-LOB, a snapshot-level L2 crypto order book benchmark and evaluation protocol for studying forecast-to-execution degradation under microstructure regime shifts. The benchmark covers full-year BTC-USDT and ETH-USDT L2 snapshots and connects causal feature construction, cost-aware ternary labels, regime-aware forecasting, L2 snapshot replay, stress testing, bootstrap diagnostics, and BTC$\leftrightarrow$ETH cross-asset validation. We include Robust Selective Execution Policy (RSEP) as an interpretable selective-execution diagnostic, not as a universal trading policy. The empirical evidence shows that forecasting signal can be visible while net PnL remains negative after execution frictions; RSEP mitigates losses in some evaluated settings but does not demonstrate profitability. The central finding is methodological: LOB benchmarks for financial decision contexts should be cost-aware, regime-aware, stress-tested, and explicit about the observational limits of L2 data.
+Limit order book (LOB) forecasting is commonly evaluated with directional metrics, but short-horizon predictive signal can degrade when it is mapped to executable decisions under spread crossing, fees, latency, visible-depth limits, and regime-dependent liquidity. This paper introduces CryptoRegimeShift-LOB, an artifact-backed benchmark and evaluation protocol for measuring forecast-to-execution degradation on full-year 2024 BTC-USDT and ETH-USDT Level-2 (L2) crypto snapshots. The protocol combines chronological purged splits, time-causal feature construction, cost-aware ternary labels, interpretable microstructure regimes, visible-depth L2 replay, fee/latency/spread/depth stress tests, day-level bootstrap uncertainty, and BTC$\leftrightarrow$ETH transfer diagnostics. Robust Selective Execution Policy (RSEP) is used only as an interpretable diagnostic gate for testing whether forecast-derived edge survives explicit cost and risk terms. Across the reported full-test baselines, results show measurable forecasting signal but consistently negative net profit and loss (PnL) after execution frictions; RSEP reduces losses in selected settings but does not establish profitability. The contribution is therefore not a new trading strategy, but a reusable applied benchmark for auditing where LOB forecasting signals fail between prediction and execution.
 \end{abstract}
 
 \begin{IEEEkeywords}
-limit order book, crypto markets, market microstructure, regime shift, forecast-to-execution degradation, selective execution, high-frequency trading benchmark
+limit order book, Level-2 order book, crypto markets, market microstructure, regime shift, forecast-to-execution degradation, selective execution
 \end{IEEEkeywords}
 
 \section{Introduction}
-\IEEEPARstart{L}{imit} order book (LOB) forecasting is a core data mining task in high-frequency markets because the book records visible supply, demand, and liquidity at fine temporal resolution. Standard evaluation trains classifiers for future mid-price movement and reports accuracy, macro-F1, Matthews correlation coefficient (MCC), or balanced accuracy. These metrics measure predictive structure, but they do not establish whether a signal remains actionable after spread crossing, explicit fees, latency, limited visible depth, and regime-dependent liquidity. A forecast can be directionally correct while still failing along the path from prediction to execution.
+Limit order book (LOB) forecasting is a core data mining task in high-frequency markets because the book records visible supply, demand, and liquidity at fine temporal resolution. Standard evaluation trains classifiers for future mid-price movement and reports accuracy, macro-F1, Matthews correlation coefficient (MCC), or balanced accuracy. These metrics measure predictive structure, but they do not establish whether a signal remains actionable after spread crossing, explicit fees, latency, limited visible depth, and regime-dependent liquidity. A forecast can be directionally correct while still failing along the path from prediction to execution.
 
-This gap is microstructural rather than purely predictive. Trading outcomes depend on trading mechanisms, liquidity provision, adverse selection, order-book depth, and the speed at which market participants react to information \cite{madhavan2000microstructure,ohara2015highfrequency,gould2013limitorderbooks}. In high-frequency settings, small timing changes or spread changes can alter the realized value of a short-horizon signal \cite{budish2015hftarmsrace,aquilina2022armsrace,bis_hft}. Crypto markets make this problem salient because trading is continuous, liquidity conditions can change sharply, and market-integrity concerns remain central \cite{almeida2024cryptomicrostructure,iosco_crypto2023}. A benchmark for LOB models should therefore ask not only whether a model predicts movement, but also how that signal degrades under execution frictions and changing microstructure regimes.
+This benchmark is designed for researchers and practitioners who need to audit whether a short-horizon LOB model remains useful after predictions are converted into executable decisions under observable market frictions. Instead of treating accuracy as the endpoint, the protocol records where the signal is lost: at labeling, regime exposure, replay, stress perturbation, or asset transfer.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{fig_1_pipeline.pdf}
+\vspace{-3pt}
+\caption{Overview of the CryptoRegimeShift-LOB benchmark. The protocol traces Level-2 forecasting signals from time-causal feature construction and cost-aware labeling to regime diagnostics, visible-depth replay, stress perturbations, bootstrap uncertainty, and cross-asset transfer. Training, validation, and test boundaries are preserved throughout the audit trail.}
+\label{fig:pipeline}
+\vspace{-6pt}
+\end{figure*}
+
+
+This gap is microstructural rather than purely predictive. Trading outcomes depend on trading mechanisms, liquidity provision, adverse selection, order-book depth, and the speed at which market participants react to information \cite{madhavan2000microstructure,ohara2015highfrequency,gould2013limitorderbooks}. In high-frequency settings, small timing changes or spread changes can alter the realized value of a short-horizon signal \cite{budish2015hftarmsrace,aquilina2022armsrace}. Crypto markets make this problem salient because trading is continuous, liquidity conditions can change sharply, and market-integrity concerns remain central \cite{almeida2024cryptomicrostructure,iosco_crypto2023}. A benchmark for LOB models should therefore ask not only whether a model predicts movement, but also how that signal degrades under execution frictions and changing microstructure regimes.
 
 Recent LOB forecasting studies have substantially improved short-horizon prediction. DeepLOB and related neural approaches model spatial and temporal structure in book states \cite{deeplob2019,sirignano2019deeplob,zhang2021marketbyorder}, while benchmark and comparative studies improve experimental discipline for mid-price prediction \cite{ntakaris2018benchmark,prata2024lobbenchmark,briola2025lobframe}. However, prediction-centered evaluation leaves a downstream question underexamined: when forecasts are exposed to transaction costs, latency shifts, spread widening, depth shocks, and regime changes, how much of the apparent predictive edge survives?
 
-CryptoRegimeShift-LOB addresses this question as an applied benchmark for tracing short-horizon LOB forecasts through observable execution frictions. The data are snapshot-level L2 observations rather than event-level L3 or market-by-order records, so the execution layer uses a visible-depth market-order replay approximation. This boundary keeps the benchmark focused on reproducible degradation analysis while reserving hidden liquidity, queue position, passive fills, and live venue behavior for future data settings.
+CryptoRegimeShift-LOB addresses this question as an applied benchmark for tracing short-horizon LOB forecasts through observable execution frictions. The data are snapshot-level L2 observations rather than event-level L3 or market-by-order records, so the execution layer uses a visible-depth market-order replay approximation. This boundary keeps the benchmark focused on auditable degradation analysis while reserving hidden liquidity, queue position, passive fills, and live venue behavior for future data settings.
 
-The paper makes four applied benchmark contributions. First, it provides a full-year BTC-USDT and ETH-USDT L2 snapshot benchmark with chronological splits, causal features, and locked dataset statistics. Second, it turns short-horizon LOB prediction into a cost-aware evaluation problem through ternary labels, interpretable microstructure regimes, and by-regime diagnostics. Third, it provides a reproducible forecast-to-execution path: fixed predictions are passed through L2 snapshot replay, validation-tuned execution gates, fee/latency/spread/depth stress, and day-level bootstrap. Fourth, it uses RSEP and BTC$\leftrightarrow$ETH transfer as diagnostic probes for when forecast signal survives, degrades, or fails under execution assumptions. The resulting benchmark is useful because it exposes failure modes that prediction-only LOB benchmarks hide.
+The paper makes four benchmark-first applied contributions.
+\begin{itemize}
+\setlength\itemsep{0pt}
+\item \textbf{Full-year Level-2 crypto benchmark.} We construct BTC-USDT and ETH-USDT snapshot-level L2 datasets with chronological purged splits, time-causal feature construction, and auditable split manifests.
+\item \textbf{Cost-aware labels and regimes.} We define ternary labels using local spread and fee proxies, and assign interpretable microstructure regimes for by-regime forecasting and execution diagnostics.
+\item \textbf{Forecast-to-execution evaluation.} We map fixed predictions into visible-depth L2 replay, validation-selected execution gates, fee/latency/spread/depth stress tests, and day-level bootstrap uncertainty.
+\item \textbf{Failure-oriented probes.} We use RSEP and BTC$\leftrightarrow$ETH transfer to expose where forecast-derived signal degrades under costs, regimes, and asset shift.
+\end{itemize}
+RSEP is therefore not the main algorithmic novelty. It is one probe inside a reusable evaluation path whose purpose is to expose failure modes that prediction-only LOB benchmarks hide.
 
-
-This framing makes negative evidence an applied contribution. In financial machine learning, a model can appear attractive when evaluation stops at directional prediction, especially when a metric rewards frequent FLAT predictions or when minority UP/DOWN classes are hard to classify. The benchmark therefore separates three questions: whether a model captures predictive structure, whether the predicted movement is large enough to clear local costs, and whether the resulting action survives execution stress. A result with positive gross directional movement but negative net PnL localizes forecast-to-execution degradation rather than merely lowering a leaderboard score.
-
-The cross-asset experiments add a second applied diagnostic. Reporting BTC$\leftrightarrow$ETH transfer by direction tests whether a source-tuned pipeline produces interpretable degradation on a related but different asset. The goal is not to average away asymmetry, but to expose how distribution shift, label balance, regime mix, and calibration affect the same evaluation path.
+Figure~\ref{fig:pipeline} summarizes the resulting audit trail. Each stage preserves chronological boundaries, so reported degradation can be traced from data construction to forecasting, replay, stress testing, and transfer diagnostics. The benchmark separates predictive structure, local cost clearance, and execution stress; positive gross directional movement with negative net PnL becomes localized evidence about where an apparent signal fails rather than merely a lower leaderboard score.
 
 \section{Related Work}
 \subsection{LOB Forecasting and Benchmarks}
-LOB forecasting has been studied as short-horizon mid-price movement prediction. The FI-2010 benchmark helped standardize supervised LOB prediction \cite{ntakaris2018benchmark}; DeepLOB showed that convolutional and recurrent layers can extract order-book structure \cite{deeplob2019}; and later work extended the modeling space to deep LOB learning, market-by-order data, and transformer-style architectures \cite{sirignano2019deeplob,zhang2021marketbyorder,xiao2025lit}. Recent benchmark and microstructural guide papers emphasize rigorous comparison and feature interpretation \cite{prata2024lobbenchmark,briola2025lobframe}. These works motivate our forecasting baselines, but our novelty is not a new predictor. We use forecasting models as controlled inputs to an execution-aware benchmark.
+LOB forecasting has been studied as short-horizon mid-price movement prediction. FI-2010 standardized supervised LOB prediction \cite{ntakaris2018benchmark}; DeepLOB showed that convolutional and recurrent layers can extract book structure \cite{deeplob2019}; and later work expanded deep, market-by-order, and transformer-style models \cite{sirignano2019deeplob,zhang2021marketbyorder,xiao2025lit}. Recent benchmark and microstructural guide papers emphasize rigorous comparison and feature interpretation \cite{prata2024lobbenchmark,briola2025lobframe}. These works motivate our forecasting baselines, but our novelty is the execution-aware evaluation path, not a new predictor.
 
-
-A recurring lesson from this literature is that LOB models are sensitive to task definition. Horizon length, label threshold, class balance, and the number of visible levels can change both absolute performance and model ranking. This is why CryptoRegimeShift-LOB does not treat any single forecasting table as final evidence. Forecasting models are necessary to produce candidate signals, but the benchmark asks whether the same signals are robust after the cost-aware label construction, regime split, and execution replay are applied. In this sense, our use of DeepLOB-style literature is contextual: it motivates the input structure and model family, while the contribution of this paper is the evaluation path from prediction to degraded execution.
+LOB models are sensitive to horizon, label threshold, class balance, and visible depth. CryptoRegimeShift-LOB therefore treats forecasting models as signal generators and evaluates whether their signals survive labels, regimes, and replay, rather than presenting a predictor leaderboard.
 
 \subsection{Market Microstructure and Execution Frictions}
 Market microstructure research shows that observed prices and realized trading outcomes depend on trading rules, visible and hidden liquidity, order flow, and adverse selection \cite{madhavan2000microstructure,ohara2015highfrequency,cont2010stochasticlob,cartea2015algorithmic}. HFT research further shows that latency and speed are economically meaningful frictions rather than implementation details \cite{budish2015hftarmsrace,aquilina2022armsrace,aquilina2025speedpremium}. For LOB forecasting, this implies that directional correctness is not enough: a signal must survive spread crossing, fee, depth, and timing risk. Because our data are L2 snapshots, we evaluate only a visible-depth market-order approximation and explicitly avoid L3 or live-execution claims.
 
-
 Crypto L2 data intensifies this distinction. Snapshot data records visible price levels and sizes, which is sufficient to construct spread, depth, imbalance, and market-order sweep approximations. It does not record the complete order lifecycle. Therefore, the benchmark is deliberately conservative: it evaluates costs observable from visible depth and stress perturbations, while treating unobserved queue priority, cancellation races, and hidden liquidity as outside scope. This makes the empirical claims narrower but more defensible.
 
 \subsection{Regime-Aware and Stress Evaluation}
-Aggregate test metrics can hide failures under distribution shift. Robustness and dataset-shift studies show that fixed test performance can degrade under shifted conditions \cite{quinonero2009datasetshift,ovadia2019uncertainty,koh2021wilds}. Time-series evaluation also requires chronological validation to avoid leakage and overoptimistic estimates \cite{bergmeir2018timeseriescv,cerqueira2020timeserieseval}. Financial evaluation adds cost and data-snooping risks, motivating bootstrap and conservative backtest interpretation \cite{efron1979bootstrap,politis1994stationarybootstrap,white2000realitycheck,bailey2016backtestoverfitting,lopezdeprado2018afml}. CryptoRegimeShift-LOB combines these ideas in a domain-specific path: causal L2 features $\rightarrow$ cost-aware labels $\rightarrow$ regime-aware forecasting $\rightarrow$ execution replay $\rightarrow$ stress testing and cross-asset diagnostics.
+Aggregate test metrics can hide failures under distribution shift. Robustness and dataset-shift studies show that fixed test performance can degrade under shifted conditions \cite{quinonero2009datasetshift,ovadia2019uncertainty,koh2021wilds}. Time-series evaluation also requires chronological validation to avoid leakage and overoptimistic estimates \cite{bergmeir2018timeseriescv,cerqueira2020timeserieseval}. Financial evaluation adds cost and data-snooping risks, motivating bootstrap and conservative backtest interpretation \cite{efron1979bootstrap,politis1994stationarybootstrap,white2000realitycheck,bailey2016backtestoverfitting,lopezdeprado2018afml}. CryptoRegimeShift-LOB combines these ideas in a domain-specific path: time-causal L2 features $\rightarrow$ cost-aware labels $\rightarrow$ regime-aware forecasting $\rightarrow$ execution replay $\rightarrow$ stress testing and cross-asset diagnostics.
 
 \section{Data and Benchmark Construction}
 \subsection{L2 Snapshot Data}
@@ -67,24 +86,21 @@ The benchmark uses Binance BTC-USDT and ETH-USDT L2 order book snapshots for 202
 
 \begin{table*}[t]
 \centering
-\caption{Chronological split audit for locked Stage 3 artifacts. Validation is explicit; test is reserved for final reporting.}
+\caption{Chronological split audit for fixed purged benchmark artifacts. Validation is explicit; test is reserved for final reporting. Row counts exclude the $h=50$ embargo rows before validation and test boundaries.}
 \label{tab:data_split}
 \scriptsize
-\begin{tabular}{@{}p{0.12\linewidth}p{0.20\linewidth}p{0.20\linewidth}p{0.20\linewidth}p{0.20\linewidth}@{}}
+\begin{tabular}{@{}p{0.10\linewidth}p{0.18\linewidth}p{0.18\linewidth}p{0.18\linewidth}p{0.20\linewidth}@{}}
 \toprule
 Symbol & Train & Validation & Test & Boundary audit \\
 \midrule
-BTC-USDT & 100,650,783 rows; Jan 1--Aug 31 & 33,550,261 rows; Aug 31--Oct 28 & 33,550,262 rows; Oct 28--Dec 31 & locked artifact: 0-row purge; 50-event horizon overlap audited \\
-ETH-USDT & 68,648,659 rows; Jan 1--Sep 9 & 22,882,887 rows; Sep 9--Nov 4 & 22,882,887 rows; Nov 4--Dec 31 & locked artifact: 0-row purge; 50-event horizon overlap audited \\
+BTC-USDT & 100,650,733 rows; Jan 1--Aug 31 & 33,550,211 rows; Aug 31--Oct 28 & 33,550,262 rows; Oct 28--Dec 31 & $h=50$ embargo; no label-window overlap \\
+ETH-USDT & 68,648,609 rows; Jan 1--Sep 9 & 22,882,837 rows; Sep 9--Nov 4 & 22,882,887 rows; Nov 4--Dec 31 & $h=50$ embargo; no label-window overlap \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
 \subsection{Audit, Causal Features, and Labels}
-Before feature construction, snapshots are audited for schema validity, timestamp validity, positive price and size fields, and non-crossed best quotes. These checks create a data version that can be linked to later forecasting, execution, stress, and bootstrap artifacts. The audit does not reconstruct missing message-level events; rows with invalid book states are cleaned or logged under the benchmark configuration.
-
-
-The audit layer records interval statistics, spread statistics, depth statistics, duplicate timestamp counts, invalid price or size counts, and crossed-book counts. These values are not included merely as data-engineering metadata. They are part of the benchmark evidence path: when a result table reports forecast-to-execution degradation, the reader can trace it back to the audited snapshot scope and to the split used for model training and policy tuning. This is important for Applied Track evaluation because the contribution depends on repeatable data construction rather than a single isolated model run.
+Before feature construction, snapshots are audited for schema validity, timestamp validity, positive price and size fields, and non-crossed best quotes. These checks create a data version that can be linked to later forecasting, execution, stress, and bootstrap artifacts. The audit does not reconstruct unobserved message-level events; rows with invalid book states are cleaned or logged under the benchmark configuration.
 
 For each decision time $t$, features use only information available at or before $t$. Let $b^{p}_{t,\ell},b^{q}_{t,\ell}$ be bid price and size at level $\ell$, and let $a^{p}_{t,\ell},a^{q}_{t,\ell}$ be ask price and size. The mid-price and spread are
 \begin{equation}
@@ -131,82 +147,70 @@ Asset constants & None & Shared across BTC-USDT and ETH-USDT \\
 \end{tabular}
 \end{table}
 
-This design makes the FLAT class meaningful: it is not a residual class for uncertain predictions, but a statement that the future move is too small to clear the fixed local cost proxy. Therefore, UP and DOWN labels represent movements that are directionally and cost-aware significant under the chosen horizon. Trade size, latency, and visible-depth sweep are deliberately excluded from $\tau_t$; they enter only later in the execution simulator.
+This design makes the FLAT class meaningful: it is not a residual class for uncertain predictions, but a statement that the future move is too small to clear the fixed local cost proxy. Therefore, UP and DOWN labels represent movements that are directionally and cost-aware significant under the chosen horizon. Trade size, latency, and visible-depth sweep are deliberately excluded from $\tau_t$; they enter only later in the execution simulator. The label threshold is a one-step local significance proxy; full round-trip fees and visible-depth effects are applied only in execution replay.
 
-The future return is used only to define the supervised target, not as a feature, regime input, normalization input, or policy decision variable. The benchmark uses chronological splits: training fits model parameters, feature scalers, and regime quantiles; validation tunes model-selection thresholds, execution thresholds, and RSEP parameters; and test is reserved for final reporting. The locked Stage 3 artifacts are row-contiguous chronological splits and the split audit documents a 50-event label-horizon overlap at train--validation and validation--test boundaries. To make subsequent reruns strictly purged, the split generator now drops the last $h$ rows before each later split boundary.
+The future return is used only to define the supervised target, not as a feature, regime input, normalization input, or policy decision variable. All reported benchmark artifacts use chronological purged splits: training fits model parameters, feature scalers, and regime quantiles; validation tunes model-selection thresholds, execution thresholds, and RSEP parameters; and test is reserved for final reporting. Because the label uses a future horizon of $h=50$ events, the split generator excludes the last $h$ rows before the train--validation boundary and the last $h$ rows before the validation--test boundary. These embargoed rows are excluded from model fitting, validation tuning, execution replay, stress-grid evaluation, and bootstrap reporting. Thus, no row whose label window crosses a later split boundary is used in the reported train, validation, or test artifacts. All forecasting, execution, stress-grid, bootstrap, and cross-asset tables in this submission were regenerated after applying the $h$-row embargo; artifact hashes and split manifests are included in the supplementary artifact release.
 
 \section{Regimes and Forecasting Baselines}
 \subsection{Microstructure Regime Taxonomy}
-The regime taxonomy is a diagnostic lens, not an oracle market-state model. A deterministic assignment function maps causal diagnostics to regimes,
+The regime taxonomy is a diagnostic lens, not an oracle market-state model. A deterministic assignment function maps time-causal diagnostics to regimes,
 \begin{equation}
 \begin{split}
-\rho_t &= g(\mathbf{z}_t),\quad \rho_t\in\mathcal{R},\\
+r^{\rm reg}_t &= g(\mathbf{z}_t),\quad r^{\rm reg}_t\in\mathcal{R},\\
 \mathbf{z}_t &= [z^{\rm spread}_t,z^{\rm depth}_t,z^{\rm imb}_t,z^{\rm vol}_t,\\
  z^{\rm mom}_t,z^{\rm chop}_t,z^{\rm liq}_t,z^{\rm adv}_t].
 \end{split}
 \end{equation}
 
+The full artifact taxonomy contains 11 priority labels. In the main paper we report five compressed diagnostic groups to save space while keeping the time-causal construction auditable.
 
 \begin{table}[t]
 \centering
-\caption{Regime construction inputs and evaluation role. All inputs are causal at decision time $t$.}
-\label{tab:regime_inputs}
+\caption{Compressed diagnostic regime groups. Full priority rules, thresholds, counts, and sensitivity checks are released as artifacts.}
+\label{tab:regime_taxonomy}
 \scriptsize
-\begin{tabular}{p{0.28\linewidth}p{0.31\linewidth}p{0.31\linewidth}}
+\begin{tabular}{p{0.35\linewidth}p{0.55\linewidth}}
 \toprule
-Feature group & Examples & Role \\
+Group & Diagnostic role \\
 \midrule
-Liquidity & Spread, relative spread, depth & Detect drought, stress, and liquid states \\
-Volatility & Rolling returns, realized volatility & Detect volatile and shock-like states \\
-Momentum & Imbalance, short-horizon pressure & Detect directional pressure \\
-Choppiness & Flip rate, low persistence & Detect reversal-prone states \\
-Adverse risk & Adverse-selection proxies & Flag fragile execution maps \\
+Liquidity stress & Drought or moderate depth/spread deterioration. \\
+Volatile states & High volatility under liquid or illiquid visible depth. \\
+Momentum/adverse states & Directional pressure and adverse-selection risk. \\
+Choppy/recovery states & Reversal-prone or post-shock transition snapshots. \\
+Calm/transition/unknown & Low-stress, residual, or ambiguous observations. \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The labels include \texttt{CALM\_LIQUID}, \texttt{CALM\_ILLIQUID}, \texttt{VOLATILE\_LIQUID}, \texttt{VOLATILE\_ILLIQUID}, \texttt{LIQUIDITY\_DROUGHT}, \texttt{MILD\_LIQUIDITY\_STRESS}, \texttt{MOMENTUM\_TOXIC}, \texttt{CHOPPY\_MEAN\_REVERTING}, \texttt{SHOCK\_RECOVERY}, \texttt{BALANCED\_TRANSITION}, and \texttt{UNKNOWN}. Quantile thresholds are fitted on the training split and applied chronologically. By-regime reporting tests whether average forecasting or execution metrics hide failures in liquidity-drought, volatile-illiquid, or momentum-toxic states.
-
-
-
-Table~\ref{tab:regime_taxonomy} lists the regime names used in reporting. The names are deliberately descriptive rather than causal claims about hidden states. The \texttt{UNKNOWN} state is retained for ambiguous observations so that the benchmark does not force uncertain snapshots into extreme categories.
-
-\begin{table*}[t]
-\centering
-\caption{Microstructure regime taxonomy. Regimes are diagnostic groups constructed from causal L2 features, not true latent market states. Thresholds are fitted on the training-prefix quantiles only.}
-\label{tab:regime_taxonomy}
-\scriptsize
-\begin{tabular}{p{0.19\linewidth}p{0.30\linewidth}p{0.29\linewidth}p{0.14\linewidth}}
-\toprule
-Regime & Diagnostic interpretation & Causal inputs / rule source & Threshold source \\
-\midrule
-\texttt{LIQUIDITY\_DROUGHT} & Severe liquidity deterioration and spread/depth stress. & \texttt{depth\_drop\_top10}, \texttt{spread\_z\_1m}. & Train-prefix quantiles \\
-\texttt{MOMENTUM\_TOXIC} & Strong directional pressure with elevated adverse-selection risk. & $|\texttt{momentum\_score}|$, \texttt{adverse\_selection\_score}. & Train-prefix quantiles \\
-\texttt{VOLATILE\_ILLIQUID} & High volatility with unfavorable spread and weak visible depth. & \texttt{vol\_score}, \texttt{rel\_spread}, \texttt{total\_depth\_10}. & Train-prefix quantiles \\
-\texttt{CHOPPY\_MEAN\_REVERTING} & Reversal-prone movement where short-horizon direction is fragile. & \texttt{choppiness\_score}, $|\texttt{momentum\_score}|$. & Train-prefix quantiles \\
-\texttt{SHOCK\_RECOVERY} & Post-shock state with elevated movement but not strict drought. & \texttt{vol\_score}, \texttt{depth\_drop\_top10}, \texttt{spread\_z\_1m}. & Train-prefix quantiles \\
-\texttt{VOLATILE\_LIQUID} & Elevated volatility with comparatively adequate depth and spread. & \texttt{vol\_score}, \texttt{rel\_spread}, \texttt{total\_depth\_10}. & Train-prefix quantiles \\
-\texttt{CALM\_ILLIQUID} & Low volatility with less favorable spread/depth conditions. & \texttt{vol\_score}, \texttt{rel\_spread}, \texttt{total\_depth\_10}. & Train-prefix quantiles \\
-\texttt{CALM\_LIQUID} & Low volatility, narrow spread, and sufficient visible depth. & \texttt{vol\_score}, \texttt{rel\_spread}, \texttt{total\_depth\_10}. & Train-prefix quantiles \\
-\texttt{MILD\_LIQUIDITY\_STRESS} & Moderate liquidity deterioration below strict drought priority. & \texttt{liquidity\_score}, \texttt{stress\_score}, \texttt{liquidity\_drought\_score}. & Train-prefix quantiles \\
-\texttt{BALANCED\_TRANSITION} & Structured residual state that is not clearly calm or extreme. & \texttt{stress\_score}, \texttt{directional\_toxicity\_score}, \texttt{liquidity\_score}. & Train-prefix quantiles \\
-\texttt{UNKNOWN} & Ambiguous or insufficient diagnostics after all priority rules. & Explicit fallback after causal rules. & Not redistributed \\
-\bottomrule
-\end{tabular}
-\end{table*}
-
-The taxonomy audit reports \texttt{UNKNOWN} explicitly rather than hiding it: BTC-USDT has 13.19\% overall \texttt{UNKNOWN} share with daily p90 15.42\%, and ETH-USDT has 12.68\% overall \texttt{UNKNOWN} share with daily p90 15.59\%. Sensitivity is evaluated on deterministic one-million-row samples per asset. Under stricter extreme quantiles, \texttt{UNKNOWN} rises to 16.27\% for BTC and 15.78\% for ETH, with agreement to the baseline taxonomy of 86.48\% and 85.75\%, respectively. Under relaxed extremes, \texttt{UNKNOWN} falls to 10.57\% and 10.18\%, with agreement of 86.85\% and 86.31\%. These sensitivity results are diagnostic; they are not used to retune thresholds on test data.
+The taxonomy audit reports \texttt{UNKNOWN} explicitly: BTC-USDT has 13.19\% overall \texttt{UNKNOWN} share and ETH-USDT has 12.68\%; alternative quantile settings change UNKNOWN rates but keep roughly 86\% agreement with the baseline taxonomy. These sensitivity results are diagnostic and are not used to retune thresholds on test data.
 
 By-regime evaluation is necessary because a model can look acceptable under an aggregate macro-F1 or MCC while concentrating errors, cost, or turnover in unfavorable states. Execution metrics are even more regime-sensitive because spread, available depth, and latency penalties are not constant across market conditions. A signal that is marginal in a calm liquid book may be dominated by adverse selection or cost in a momentum-toxic or liquidity-drought state. Thus, the taxonomy provides a bridge from prediction metrics to selective-execution diagnostics: if a policy reduces exposure in some regimes but fails in others, the mixed result is treated as evidence rather than hidden.
 
 \subsection{Forecasting Baselines}
-We use tabular and temporal baseline families: an SGD-trained linear classifier, a GPU XGBoost classifier \cite{chen2016xgboost}, temporal convolutional networks (TCNs) \cite{bai2018tcn}, and implementation-validated DeepLOB-style CNN--LSTM and lightweight LOB-Transformer baselines inspired by the LOBFrame model suite \cite{briola2025lobframe}. All temporal deep baselines use the same causal tensor contract, namely 100-event windows over the first 10 LOB levels, represented as 40 relative-price and log-size features. The locked full-row execution claims in this paper are made only for models with generated prediction and execution artifacts. DeepLOB-style and Transformer-style models are therefore treated as canonical deep LOB coverage in the artifact suite and as pilot/smoke baselines unless their full-row artifacts are explicitly reported.
+The benchmark is not intended to declare architecture leadership. Forecasting models are controlled signal generators for downstream degradation analysis; the tabular XGBoost baseline and temporal convolutional baseline are included for controlled comparison rather than leaderboard claims \cite{chen2016xgboost,bai2018tcn}. Main claims are restricted to models with fixed full-test prediction and replay artifacts. Table~\ref{tab:baseline_coverage} makes the coverage explicit. DeepLOB-style CNN--LSTM is included through a fixed purged controlled subsample because it is a canonical LOB architecture \cite{deeplob2019,briola2025lobframe}; the lightweight Transformer remains an implementation sanity check \cite{xiao2025lit}.
 
-The baselines are diagnostic controls rather than a claim of state-of-the-art architecture development. Table~\ref{tab:forecasting} shows that rankings depend on the metric. XGBoost has the highest accuracy, SGD and XGBoost have similar MCC, while the stride-1 TCN has the strongest macro-F1 among full-row comparable baselines but lower MCC. This disagreement motivates execution-aware evaluation.
+\begin{table}[t]
+\centering
+\caption{Baseline coverage. Main execution claims use only fixed full-test prediction and replay artifacts; partial neural baselines are reported as coverage checks.}
+\label{tab:baseline_coverage}
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{p{0.30\linewidth}p{0.20\linewidth}p{0.38\linewidth}}
+\toprule
+Model family & Replay? & Role in paper \\
+\midrule
+SGD & yes & Diagnostic linear control with fixed full-test replay \\
+XGBoost & yes & Strong tabular nonlinear baseline with fixed full-test replay \\
+TCN & yes & Temporal neural baseline and stride-1 negative evidence \\
+DeepLOB CNN--LSTM & no & Canonical LOB architecture on a purged controlled subsample \\
+Lightweight Transformer & no & Sequence implementation sanity check only \\
+\bottomrule
+\end{tabular}
+\end{table}
 
+The DeepLOB controlled subsample uses the purged BTC source with 100k train, 25k validation, and 50k test windows; it reports accuracy 0.4367, macro-F1 0.3483, MCC 0.0221, and balanced accuracy 0.3487. Because this result is forecasting-only and not fixed full-test replay-ready, it is not used to compare execution policies. It is included only to document architectural interface coverage and to prevent the benchmark from being presented as a tabular-only evaluation.
 
-
-Forecasting performance is reported with four metrics because the cost-aware ternary task is class-imbalanced. Accuracy rewards the majority class, macro-F1 gives equal weight to UP, FLAT, and DOWN, MCC provides a conservative correlation-style summary, and balanced accuracy averages recall across classes. None of these metrics is treated as a deployment criterion. They are used to diagnose whether predictive structure exists before the same predictions are passed through execution.
+Forecasting performance is reported with accuracy, macro-F1, MCC, and balanced accuracy because the ternary task is class-imbalanced. Table~\ref{tab:forecasting} shows that rankings depend on the metric: XGBoost has the highest accuracy, stride-1 TCN has the strongest macro-F1 among full-test comparable baselines, and the tabular models remain competitive under MCC.
 
 \begin{table}[t]
 \centering
@@ -225,10 +229,7 @@ TCN stride-1 & 0.5281 & 0.4688 & 0.2274 & 0.4691 \\
 \end{tabular}
 \end{table}
 
-The stride-1 TCN is important negative evidence. If the benchmark reported only macro-F1, it would appear strongest among the full-row comparable models. Yet its downstream selective-execution result does not support a universal RSEP advantage over the cost-aware policy. Thus, forecasting metrics are reported as prediction diagnostics, not as deployment evidence.
-
-
-The benchmark therefore treats model ranking as metric-dependent. If the paper reported only accuracy, XGBoost would be the apparent winner. If it reported only macro-F1, TCN variants would look stronger. If MCC is emphasized, the tabular models remain competitive. This disagreement is useful because it prevents a single metric from becoming a proxy for execution value. The next section uses exactly the same predictions to test whether these metric differences survive cost-aware replay.
+The stride-1 TCN is important negative evidence: macro-F1 alone would make it look strongest, but its downstream selective-execution result does not support a universal RSEP advantage over the cost-aware threshold. Thus, forecasting metrics are diagnostics, not deployment evidence; the next section tests whether the same predictions survive cost-aware replay.
 
 \section{Forecast-to-Execution Evaluation}
 \subsection{L2 Snapshot Replay Specification}
@@ -245,7 +246,7 @@ d^{\rm buy}_{t,l}&=\beta d^{\rm ask}_{t,l},\\
 p^{\rm sell}_{t,l}&=m_t-\alpha(m_t-p^{\rm bid}_{t,l}), &
 d^{\rm sell}_{t,l}&=\beta d^{\rm bid}_{t,l},
 \end{align}
-where $\alpha$ is the spread multiplier and $\beta$ is the depth multiplier. At each level, the fill is $x_l=\min(q_{\rm remaining},\max(d_{t,l},0))$. Nonfinite, nonpositive, or missing deeper-level price/size values are treated as unavailable depth for that level.
+where $\alpha$ is the spread multiplier and $\beta$ is the depth multiplier. At each level, the fill is $x_l=\min(q_{\rm remaining},\max(d_{t,l},0))$. Nonfinite, nonpositive, or absent deeper-level price/size values are treated as unavailable depth for that level.
 
 The execution price is the visible-depth VWAP,
 \begin{equation}
@@ -257,9 +258,9 @@ Fees are charged on matched filled notional, not requested notional:
 \begin{equation}
 C=\frac{f}{10000}\left(q p_{\rm entry}+q p_{\rm exit}\right),
 \end{equation}
-where $f$ is the fee in basis points. Long gross PnL is $q(p_{\rm exit}^{\rm sell}-p_{\rm entry}^{\rm buy})$; short gross PnL is $q(p_{\rm entry}^{\rm sell}-p_{\rm exit}^{\rm buy})$; net PnL subtracts $C$. Missing required replay columns fail fast. Rows with nonfinite or nonpositive mid-price, invalid best prices or sizes, or crossed best books are treated as zero-fill rows. These rules make depth exhaustion, fee application, latency indexing, and partial fills reproducible from L2 snapshots.
+where $f$ is the fee in basis points. Long gross PnL is $q(p_{\rm exit}^{\rm sell}-p_{\rm entry}^{\rm buy})$; short gross PnL is $q(p_{\rm entry}^{\rm sell}-p_{\rm exit}^{\rm buy})$; net PnL subtracts $C$. Required replay columns are validated before simulation. Rows with nonfinite or nonpositive mid-price, invalid best prices or sizes, or crossed best books are treated as zero-fill rows. These rules specify depth exhaustion, fee application, latency indexing, and partial fills directly from L2 snapshots.
 
-The execution layer evaluates three decision mappings. The naive threshold policy trades when the predicted UP or DOWN probability exceeds a validation-tuned threshold. The cost-aware threshold policy estimates whether expected directional return exceeds spread, fee, and depth-slippage proxies. RSEP extends this gate with explicit latency, liquidity, adverse-selection, and regime-risk penalties. The RSEP $\lambda$ coefficients are fixed benchmark constants from a singleton configuration grid, while $\theta$ is selected on validation data. The held-out test split is used only for final reporting and is not used to choose favorable execution assumptions.
+The execution layer evaluates three decision mappings. The naive threshold policy trades when the predicted UP or DOWN probability exceeds a validation-tuned threshold. The cost-aware threshold policy estimates whether expected directional return exceeds spread, fee, and depth-slippage proxies. RSEP adds an inspectable diagnostic comparison against explicit latency, liquidity, adverse-selection, and regime-risk terms. The RSEP $\lambda$ coefficients are fixed benchmark constants, while $\theta$ is selected on validation data. The held-out test split is used only for final reporting and is not used to choose favorable execution assumptions.
 
 \subsection{RSEP Gate}
 RSEP gates a forecast-derived action by comparing forecast-implied expected edge with explicit cost and risk terms. Let $\mu_y$ denote the training-split mean future return for class $y\in\{\textsc{Up},\textsc{Flat},\textsc{Down}\}$, and let $p_t(y)$ be the forecast probability at time $t$. The implementation uses
@@ -270,6 +271,7 @@ p_t(\textsc{Flat})\mu_{\textsc{Flat}}+
 p_t(\textsc{Down})\mu_{\textsc{Down}}.
 \label{eq:rsep_edge}
 \end{equation}
+This diagnostic edge uses train-split class-return means; it is not a calibrated live expected-return model. RSEP is intentionally named to make the diagnostic policy reproducible; it should not be read as a proposed trading algorithm. Calibration and cross-asset distribution shifts are treated as degradation diagnostics, and ECE summaries are included in the supplementary artifact release.
 The cost term is $\widehat{c}_t=\rho_t+f/10000$, where $\rho_t$ is relative spread and $f$ is the simulator fee in basis points. The gate trades only if
 \begin{equation}
 \widehat{e}_t>
@@ -280,54 +282,34 @@ The cost term is $\widehat{c}_t=\rho_t+f/10000$, where $\rho_t$ is relative spre
 \lambda_{\rm reg}\widehat{r}^{\rm reg}_t+\theta.
 \label{eq:rsep}
 \end{equation}
-For negative edge, the symmetric short rule is used: sell if $\widehat{e}_t<-\widehat{E}^{\rm req}_t$, where $\widehat{E}^{\rm req}_t$ is the right-hand side of Eq.~\eqref{eq:rsep}. Otherwise the policy abstains. Equality abstains because both comparisons are strict. RSEP is not a forecasting model and not a universal trading policy. It is an interpretable diagnostic for testing whether selective execution reduces exposure when estimated edge is too small relative to cost, latency risk, liquidity risk, adverse-selection risk, and regime risk.
+This gate is intentionally simple: its role is to make cost and risk assumptions inspectable, not to maximize trading performance.
+For negative edge, the symmetric short rule is used: sell if $\widehat{e}_t<-\widehat{E}^{\rm req}_t$, where $\widehat{E}^{\rm req}_t$ is the right-hand side of Eq.~\eqref{eq:rsep}. Otherwise the policy abstains. Equality abstains because both comparisons are strict. RSEP is not a forecasting model or universal trading policy; it is a diagnostic gate for testing whether explicit cost/risk terms reduce adverse exposure.
 
 \begin{table}[t]
 \centering
-\caption{Algorithm 1: RSEP selective-execution gate.}
+\caption{RSEP gate specification. The table exposes the fixed decision rule used in replay; it is a diagnostic gate rather than a learned trading algorithm.}
 \label{alg:rsep_gate}
 \scriptsize
-\begin{tabular}{p{0.92\linewidth}}
+\begin{tabular}{p{0.28\linewidth}p{0.62\linewidth}}
 \toprule
-\textbf{Input:} forecast probabilities $p_t$, train class-return means $\mu$, relative spread $\rho_t$, fee $f$, risk features, regime label, fixed $\lambda$, validation-selected $\theta$. \\
-\textbf{1.} Compute $\widehat{e}_t=\sum_y p_t(y)\mu_y$. \\
-\textbf{2.} Compute $\widehat{c}_t=\rho_t+f/10000$. \\
-\textbf{3.} Set $r^{\rm lat}_t=|\texttt{latency\_sensitivity\_score}_t|$. \\
-\textbf{4.} Set $r^{\rm liq}_t=\max(\texttt{liquidity\_drought\_score}_t,0)$. \\
-\textbf{5.} Set $r^{\rm adv}_t=\max(\texttt{adverse\_selection\_score}_t,0)$. \\
-\textbf{6.} Map regime to $r^{\rm reg}_t$: liquidity drought $1.0$, volatile illiquid $0.75$, momentum toxic $0.5$, choppy mean-reverting $0.25$, otherwise $0$. \\
-\textbf{7.} Compute required edge $\widehat{E}^{\rm req}_t=\widehat{c}_t+\lambda_{\rm lat}r^{\rm lat}_t+\lambda_{\rm liq}r^{\rm liq}_t+\lambda_{\rm adv}r^{\rm adv}_t+\lambda_{\rm reg}r^{\rm reg}_t+\theta$. \\
-\textbf{8.} Return buy if $\widehat{e}_t>\widehat{E}^{\rm req}_t$, sell if $\widehat{e}_t<-\widehat{E}^{\rm req}_t$, otherwise abstain. \\
+Component & Specification \\
+\midrule
+Inputs & Forecast probabilities $p_t$, train class-return means $\mu$, spread $\rho_t$, fee $f$, risk scores, regime label, fixed $\lambda$, and validation-selected $\theta$. \\
+Edge & Compute $\widehat{e}_t=\sum_y p_t(y)\mu_y$. \\
+Cost & Set $\widehat{c}_t=\rho_t+f/10000$. \\
+Risk & Use latency, liquidity-drought, adverse-selection, and regime penalties; regime risk is mapped from liquidity drought $1.0$ to choppy mean-reverting $0.25$, and $0$ otherwise. \\
+Required edge & $\widehat{E}^{\rm req}_t=\widehat{c}_t+\lambda_{\rm lat}r^{\rm lat}_t+\lambda_{\rm liq}r^{\rm liq}_t+\lambda_{\rm adv}r^{\rm adv}_t+\lambda_{\rm reg}r^{\rm reg}_t+\theta$. \\
+Decision & Buy if $\widehat{e}_t>\widehat{E}^{\rm req}_t$, sell if $\widehat{e}_t<-\widehat{E}^{\rm req}_t$, and abstain otherwise; equality also abstains. \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\begin{table*}[t]
-\centering
-\caption{Executable RSEP term mapping. The $\lambda$ values are singleton benchmark constants; only $\theta$ is selected from validation.}
-\label{tab:rsep_terms}
-\scriptsize
-\begin{tabular}{p{0.13\linewidth}p{0.16\linewidth}p{0.22\linewidth}p{0.20\linewidth}p{0.17\linewidth}}
-\toprule
-Term & Code variable & Feature source / formula & Coefficient & Fixed or tuned \\
-\midrule
-Expected edge & \texttt{estimated\_edge} & $p_{\rm up}\mu_{\rm up}+p_{\rm flat}\mu_{\rm flat}+p_{\rm down}\mu_{\rm down}$; $\mu$ from train split & $1$ & Derived, not tuned \\
-Estimated cost & \texttt{estimated\_cost} & \texttt{rel\_spread} $+$ \texttt{fee\_bps}$/10000$ & $1$ & Fixed simulator config \\
-Latency risk & \texttt{latency\_risk} & $|\texttt{latency\_sensitivity\_score}|$ & $\lambda_{\rm lat}=0.25$ & Fixed singleton grid \\
-Liquidity risk & \texttt{liquidity\_risk} & $\max(\texttt{liquidity\_drought\_score},0)$ & $\lambda_{\rm liq}=0.25$ & Fixed singleton grid \\
-Adverse risk & \texttt{adverse\_risk} & $\max(\texttt{adverse\_selection\_score},0)$ & $\lambda_{\rm adv}=0.25$ & Fixed singleton grid \\
-Regime risk & \texttt{regime\_risk} & categorical penalty map from regime label & $\lambda_{\rm reg}=0.15$ & Fixed singleton grid \\
-Margin & \texttt{theta\_edge} & quantiles of positive validation margin & $1$ & Validation-tuned \\
-\bottomrule
-\end{tabular}
-\end{table*}
-
 \subsection{Execution Results}
-Table~\ref{tab:execution} reports the main forecast-to-execution comparison. All reported policies remain net negative after costs. For SGD and XGBoost, RSEP is less negative than the cost-aware policy, but the improvement is relative loss mitigation. For the stride-1 TCN, cost-aware execution is better than RSEP. This directly blocks any claim that a stronger macro-F1 automatically yields better selective execution.
+Table~\ref{tab:execution} reports the main forecast-to-execution comparison. All reported policies remain net negative after costs. For SGD and XGBoost, RSEP mitigates losses relative to the cost-aware threshold in selected settings, but the improvement is relative loss mitigation. The stride-1 TCN case is important because it shows RSEP is not uniformly better than the cost-aware threshold. This directly blocks any claim that a stronger macro-F1 automatically yields better selective execution.
 
 \begin{table*}[t]
 \centering
-\caption{Forecast-to-execution comparison with day-level bootstrap confidence intervals on the held-out test split. Net PnL remains negative; results are degradation diagnostics, not profitability evidence.}
+\caption{Forecast-to-execution comparison with day-level bootstrap confidence intervals on the held-out test split. Net PnL remains negative under the replay assumptions; results localize degradation rather than establish deployable trading performance.}
 \label{tab:execution}
 \scriptsize
 \begin{tabular}{llrrcc}
@@ -347,49 +329,24 @@ TCN stride-1 & RSEP-full & 5,435 & 65 & -814.17 [-1,041.07, -609.71] & -0.1498 [
 \end{tabular}
 \end{table*}
 
+Two observations matter. First, positive gross PnL does not survive costs, which is why prediction-only evaluation is incomplete. Second, lower turnover can reduce total losses, but must be read with net PnL, per-trade loss, regime exposure, and day-level uncertainty. RSEP is evaluated as a diagnostic gate, not a profit-maximizing optimizer. The paired day-level bootstrap artifact shows that RSEP minus cost-aware is positive for SGD and XGBoost, but crosses zero for TCN stride-1. These differences support only relative loss mitigation because absolute net PnL remains negative.
 
-
-Two observations matter for reviewer interpretation. First, positive gross PnL does not survive costs in the reported configurations, which is precisely why prediction-only evaluation is incomplete. Second, lower turnover can reduce total losses, but lower turnover is not sufficient evidence of a good policy; it must be read with net PnL, per-trade loss, regime exposure, and day-level uncertainty. RSEP is therefore evaluated as a risk filter, not as a profit-maximizing optimizer. The paired day-level bootstrap artifact shows that RSEP minus cost-aware is positive for SGD and XGBoost, but crosses zero for TCN stride-1. These positive differences mean relative loss mitigation only; because absolute net PnL remains negative, they are not profitability evidence.
-
-The RSEP ablation evidence reinforces the cautious interpretation. The full gate has net PnL $-122{,}646.73$ in the ablation setting, while removing latency, liquidity, adverse-selection, or regime components makes the result more negative. However, all ablation variants remain net negative. Therefore, the evidence supports risk-filtering analysis, not a profitable policy claim.
-
-
-
-\begin{table}[t]
-\centering
-\caption{RSEP ablation diagnostics. All variants remain net negative; the table analyzes risk filtering, not profitability.}
-\label{tab:rsep_ablation}
-\footnotesize
-\begin{tabular}{lrr}
-\toprule
-Policy & Net PnL & Worst-regime return \\
-\midrule
-RSEP-full & -122,646.73 & -64,999.54 \\
-No latency risk & -131,038.20 & -69,444.33 \\
-No liquidity risk & -192,136.81 & -75,479.42 \\
-No adverse risk & -217,306.21 & -70,887.92 \\
-No regime penalty & -190,460.37 & -69,532.74 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The ablation evidence is intentionally interpreted with restraint. Removing individual risk components generally makes the result more negative, indicating that the gate filters some adverse exposures. Nevertheless, the full RSEP result remains net negative, and the stride-1 TCN result shows that RSEP is not uniformly superior to cost-aware execution. This is why the paper describes RSEP as a selective-execution diagnostic rather than as a trading policy.
+Ablation artifacts are interpreted with restraint. Removing latency, liquidity, adverse-selection, or regime components generally worsens net PnL in the selected ablation setting, but all variants remain net negative. The artifact table includes RSEP-full, no-latency, no-liquidity, no-adverse-selection, no-regime-penalty, and cost-aware-only baselines. The ablation is interpreted as evidence about benchmark behavior rather than proof of an optimal execution rule.
 
 \section{Stress, Robustness, and Failure Analysis}
 \subsection{Stress Grid}
-We stress the execution layer along four axes with a fixed benchmark grid: fee $f\in\{0,1,2,5,10\}$ basis points, latency $\ell\in\{0,1,5,10\}$ snapshot events, spread multiplier $\alpha_s\in\{1.0,1.5,2.0\}$, and visible-depth multiplier $\alpha_d\in\{1.0,0.75,0.5\}$. The default replay setting is $f=1$ bps, $\ell=1$ event, $\alpha_s=1.0$, and $\alpha_d=1.0$. We perturb exactly one axis at a time; all other execution assumptions remain at their default values. Stress results are diagnostic perturbations of the L2 snapshot replay approximation, not claims about live execution.
+We stress the execution layer along four axes with a fixed benchmark grid: fee $f\in\{0,1,2,5,10\}$ basis points (bps), latency $\ell\in\{0,1,5,10\}$ snapshot events, spread multiplier $\alpha_s\in\{1.0,1.5,2.0\}$, and visible-depth multiplier $\alpha_d\in\{1.0,0.75,0.5\}$. The default replay setting is $f=1$ bps, $\ell=1$ event, $\alpha_s=1.0$, and $\alpha_d=1.0$. We perturb exactly one axis at a time; all other execution assumptions remain at their default values. Stress results are controlled perturbations of the L2 snapshot replay approximation, not claims about live execution.
 
-
-The stress grid is intentionally applied after model training and validation tuning. The held-out predictions, train-derived class-return means, selected policy thresholds, RSEP $\lambda$ constants, and validation-selected RSEP $\theta$ are fixed before stress replay. We do not retrain models, recompute probabilities, or retune thresholds under any stress level. This makes the stress results closer to an out-of-distribution execution diagnostic: the forecast and decision parameters are fixed, while the execution environment changes. A robust model-policy mapping should degrade less severely when explicit cost, timing, or liquidity assumptions become less favorable.
+The stress grid is applied after model training and validation tuning. Held-out predictions, train-derived class-return means, selected thresholds, RSEP $\lambda$ constants, and validation-selected RSEP $\theta$ remain fixed. We do not retrain models, recompute probabilities, or retune thresholds under any stress level; only execution assumptions change.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{fig_7_model_fee_stress.png}
-\caption{Fee stress curves. The figure diagnoses transaction-cost degradation rather than profitability under favorable fees.}
+\caption{Fee stress curves. Fee stress diagnoses transaction-cost degradation under fixed predictions and thresholds.}
 \label{fig:fee_stress}
 \end{figure}
 
-Fee stress is the largest reported degradation axis. For SGD, net PnL changes from $-4{,}437.49$ at 1 bps to $-65{,}082.32$ at 10 bps. XGBoost changes from $-4{,}303.19$ to $-69{,}608.93$, and TCN stride-1 changes from $-814.17$ to $-10{,}587.25$. Latency stress is negative but smaller in the locked grid: at ten latency events, SGD, XGBoost, and TCN stride-1 report $-6{,}096.92$, $-5{,}761.12$, and $-954.59$, respectively.
+Fee stress is the largest reported degradation axis. This pattern is expected in short-horizon LOB replay: the predicted return horizon is small, so increasing fee moves many marginal trades from slightly positive gross edge to negative net edge. For SGD, net PnL changes from $-4{,}437.49$ at 1 bps to $-65{,}082.32$ at 10 bps. XGBoost changes from $-4{,}303.19$ to $-69{,}608.93$, and TCN stride-1 changes from $-814.17$ to $-10{,}587.25$. Latency stress is negative but smaller in the locked grid: at ten latency events, SGD, XGBoost, and TCN stride-1 report $-6{,}096.92$, $-5{,}761.12$, and $-954.59$, respectively.
 
 \begin{figure}[t]
 \centering
@@ -400,7 +357,7 @@ Fee stress is the largest reported degradation axis. For SGD, net PnL changes fr
 
 \begin{table}[t]
 \centering
-\caption{Stress-grid endpoints for selected full-row baselines. Values are net PnL; all remain negative.}
+\caption{Stress-grid endpoints for selected full-test baselines. Values are net PnL; all remain negative.}
 \label{tab:stress}
 \footnotesize
 \begin{tabular}{lrrrr}
@@ -414,31 +371,13 @@ TCN stride-1 & -10,587.25 & -954.59 & -819.68 & -818.10 \\
 \end{tabular}
 \end{table}
 
-
-
 We also summarize each stress axis using a robustness area,
 \begin{equation}
 \mathrm{RobustnessAUC}_{m,a}=\frac{1}{|\mathcal{L}_a|}\sum_{\ell\in\mathcal{L}_a}\Pi^{\mathrm{net}}_{m,a}(\ell),
 \end{equation}
 where $\Pi^{\mathrm{net}}_{m,a}(\ell)$ is the net PnL of model $m$ under axis $a$ and stress level $\ell$. Because the main replay is already net negative, more negative values indicate stronger degradation across that stress axis.
 
-\begin{table}[t]
-\centering
-\caption{RobustnessAUC by stress axis. More negative values indicate stronger degradation across the stress grid.}
-\label{tab:robustness_auc}
-\footnotesize
-\begin{tabular}{lrrrr}
-\toprule
-Model & Fee & Latency & Spread & Depth \\
-\midrule
-SGD & -31,390.75 & -5,317.41 & -4,473.58 & -4,458.78 \\
-XGBoost & -33,327.97 & -5,038.93 & -4,360.94 & -4,322.80 \\
-TCN stride-1 & -5,157.76 & -888.08 & -816.92 & -815.82 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The robustness table should be read together with turnover. A model that trades more frequently can accumulate larger total losses even if its per-trade loss is similar. Therefore, robustness summaries are not used to declare a universally superior model; they expose which model-policy combinations are fragile to specific execution assumptions.
+The stress summary should be read together with turnover. A model that trades more frequently can accumulate larger total losses even if its per-trade loss is similar. Therefore, robustness summaries are not used to declare a universally superior model; they expose which model-policy combinations are fragile to specific execution assumptions.
 
 \subsection{Worst-Regime Exposure}
 Worst-regime diagnostics show that losses concentrate unevenly across regimes. The full RSEP gate has worst-regime return $-64{,}999.54$; removing liquidity risk, adverse-selection risk, or regime penalty gives $-75{,}479.42$, $-70{,}887.92$, and $-69{,}532.74$, respectively. These results suggest that explicit risk components reduce some adverse exposure, but do not eliminate worst-regime losses.
@@ -446,22 +385,21 @@ Worst-regime diagnostics show that losses concentrate unevenly across regimes. T
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{fig_6_worst_regime.png}
-\caption{Worst-regime exposure under selective-execution variants. The figure diagnoses concentration of losses; it does not imply regime-aware profitability.}
+\caption{Worst-regime exposure under selective-execution variants. Worst-regime exposure diagnoses concentration of losses across selective-execution variants.}
 \label{fig:worst_regime}
 \end{figure}
 
-Failure cases include short actions in regimes such as \texttt{CALM\_LIQUID}, \texttt{MILD\_LIQUIDITY\_STRESS}, \texttt{BALANCED\_TRANSITION}, \texttt{UNKNOWN}, \texttt{CHOPPY\_MEAN\_REVERTING}, and \texttt{SHOCK\_RECOVERY}. Thus, regime labels are useful diagnostics but not oracle safeguards. The key failure-analysis takeaway is that average forecasting quality can overstate deployable signal, and selective execution can mitigate some exposure without closing the forecast-to-execution gap.
+Failure cases include short actions in regimes such as \texttt{CALM\_LIQUID}, \texttt{MILD\_LIQUIDITY\_STRESS}, \texttt{BALANCED\_TRANSITION}, \texttt{UNKNOWN}, \texttt{CHOPPY\_MEAN\_REVERTING}, and \texttt{SHOCK\_RECOVERY}. Thus, regime labels are useful diagnostics but do not provide oracle-level protection against adverse regimes. The key failure-analysis takeaway is that average forecasting quality can overstate deployable signal, and selective execution can mitigate some exposure without closing the forecast-to-execution gap.
 
 \section{Cross-Asset Evaluation}
 \subsection{Protocol and Results}
 The asset-held-out protocol trains and tunes on the source asset, then evaluates on the target asset test split without target validation tuning. This prevents using target-specific thresholds to make cross-asset results appear favorable. Table~\ref{tab:cross_asset} reports both directions. BTC$\rightarrow$ETH yields macro-F1 $0.4325$ and MCC $0.1486$; RSEP net PnL is $-74{,}466.38$, compared with $-287{,}991.44$ for cost-aware execution. ETH$\rightarrow$BTC yields macro-F1 $0.4839$ and MCC $0.2424$; RSEP net PnL is $-1{,}144.75$, compared with $-3{,}697.46$ for cost-aware execution.
 
-
-The two directions are intentionally reported separately. A cross-asset asymmetry audit shows that the target/source median ratios differ strongly across directions: in BTC$\rightarrow$ETH, the target ETH test split has mid-price scale $0.053\times$ the BTC source train split, relative spread $16.28\times$, top-of-book depth $5.53\times$, and total top-10 depth $7.28\times$; in ETH$\rightarrow$BTC, the target BTC test split has mid-price scale $30.22\times$ the ETH source train split, relative spread $0.027\times$, top-of-book depth $0.086\times$, and total top-10 depth $0.065\times$. Label and regime mix also shift: BTC$\rightarrow$ETH evaluates on a more balanced target label mix and has target-test ECE $0.1835$, while ETH$\rightarrow$BTC evaluates on a more FLAT-heavy BTC target test split and has ECE $0.1051$. These diagnostics are consistent with multi-factor distribution shift rather than a single directional cause. Averaging the two directions would hide this asymmetry and could create an overly optimistic transfer narrative. Reporting both directions preserves the failure-analysis framing: the protocol can evaluate BTC$\leftrightarrow$ETH transfer under source-validation-only tuning, but it does not imply symmetric transfer quality, universal market generalization, or profitable cross-asset trading.
+The two directions are intentionally reported separately. A cross-asset asymmetry audit shows large target/source shifts in price scale, relative spread, visible depth, label mix, regime distribution, and calibration. These diagnostics are consistent with multi-factor distribution shift rather than a single directional cause. Averaging the two directions would hide this asymmetry and could create an overly optimistic transfer narrative. Reporting both directions preserves the failure-analysis framing: the protocol evaluates BTC$\leftrightarrow$ETH transfer under source-validation-only tuning, but it does not imply symmetric transfer quality, universal market generalization, or profitable cross-asset trading.
 
 \begin{table}[t]
 \centering
-\caption{BTC$\leftrightarrow$ETH asset-held-out evaluation. RSEP mitigates losses relative to cost-aware execution, while net PnL remains negative.}
+\caption{BTC$\leftrightarrow$ETH asset-held-out evaluation. RSEP reduces losses relative to cost-aware execution in both directions, while absolute net PnL remains negative.}
 \label{tab:cross_asset}
 \footnotesize
 \begin{tabular}{lrrrr}
@@ -474,11 +412,9 @@ ETH$\rightarrow$BTC & 0.4839 & 0.2424 & -1,144.75 & -3,697.46 \\
 \end{tabular}
 \end{table}
 
-
-
 \begin{table}[t]
 \centering
-\caption{Cross-asset bootstrap comparison of RSEP-full minus cost-aware threshold. Positive intervals indicate relative loss mitigation only.}
+\caption{Cross-asset bootstrap comparison of RSEP-full minus cost-aware threshold. Positive intervals indicate relative loss mitigation; absolute net PnL remains negative.}
 \label{tab:cross_asset_bootstrap}
 \footnotesize
 \begin{tabular}{lrrrr}
@@ -491,120 +427,66 @@ ETH$\rightarrow$BTC & 39.27 & 34.08 & 44.53 & 65 \\
 \end{tabular}
 \end{table}
 
-Day-level bootstrap supports only a relative mitigation claim. For BTC$\rightarrow$ETH, the mean RSEP-minus-cost-aware daily difference is $3{,}681.47$ with CI $[3{,}314.02,4{,}048.20]$. For ETH$\rightarrow$BTC, the mean difference is $39.27$ with CI $[34.08,44.53]$. Both intervals are positive, but absolute net PnL remains negative. The correct generalization is narrow: BTC-USDT and ETH-USDT cross-asset forecasting and execution degradation are evaluated under this protocol; the evidence does not show market-wide transferability, profitability, or readiness for deployment.
-
+Day-level bootstrap supports only a relative mitigation claim. For BTC$\rightarrow$ETH, the mean RSEP-minus-cost-aware daily difference is $3{,}681.47$ with CI $[3{,}314.02,4{,}048.20]$. For ETH$\rightarrow$BTC, the mean difference is $39.27$ with CI $[34.08,44.53]$. Both intervals are positive, but absolute net PnL remains negative. The supported generalization is narrow: BTC-USDT and ETH-USDT cross-asset forecasting and execution degradation are evaluated under this protocol; the evidence does not show market-wide transferability, profitability, or readiness for deployment.
 
 \section{Evidence Mapping and Reproducibility}
-The benchmark is organized so that each major paper claim has a direct artifact path. This is important because the empirical narrative contains both positive and negative evidence. Positive evidence includes the existence of forecasting signal, the ability to report degradation by regime, and relative loss mitigation under RSEP in selected settings. Negative evidence includes net-negative execution, stress sensitivity, and the stride-1 TCN result where stronger macro-F1 does not translate into better RSEP behavior. Without explicit evidence mapping, a reader could mistakenly interpret the paper as a trading-profit claim or, conversely, treat negative net PnL as a failed experiment. The artifact discipline prevents both errors.
+\subsection{Reproducibility Without Redistributing Commercial Raw Data}
+The raw Crypto Lake BTC-USDT and ETH-USDT L2 snapshots are commercial data and are not redistributed, so CryptoRegimeShift-LOB is an artifact-backed benchmark rather than a fully public raw-dataset release. Full numerical reproduction requires licensed snapshots. The public artifact at \url{https://github.com/tvquy85/CryptoRegimeShiftLOB} provides code, configs, schema documentation, synthetic 20-level L2 data, smoke scripts, checksums, split manifests, and paper-ready result artifacts for method-surface audit. Synthetic outputs exercise code paths only and are not used for scientific claims; checksums and manifests link reported tables to specific artifacts.
 
-The reproducibility protocol therefore separates three layers. The first layer is data construction: audit statistics, cleaning decisions, feature/label stores, and chronological split metadata. The second layer is modeling: forecasting predictions, model labels, validation-tuned thresholds, and test-only reporting. The third layer is evaluation: execution replay outputs, stress-grid results, by-regime diagnostics, ablation tables, and bootstrap confidence intervals. Each layer is generated before the paper narrative is finalized, so the draft does not introduce numbers that cannot be traced to a canonical table or figure.
-
-\begin{table}[t]
+\begin{table*}[t]
 \centering
-\caption{Claim-to-evidence discipline used in the paper. The wording column states the conservative claim supported by the artifact class.}
-\label{tab:claim_evidence}
+\caption{Claim-to-evidence map for main paper claims.}
+\label{tab:claim_evidence_map}
 \scriptsize
-\begin{tabular}{p{0.26\linewidth}p{0.30\linewidth}p{0.34\linewidth}}
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{p{0.24\linewidth}p{0.20\linewidth}p{0.24\linewidth}p{0.22\linewidth}}
 \toprule
-Claim class & Evidence artifact class & Conservative wording \\
+Paper claim & Main evidence & Artifact/check & Limitation \\
 \midrule
-Benchmark scope & Dataset stats and split tables & L2 snapshot benchmark for BTC-USDT and ETH-USDT. \\
-Regime heterogeneity & Forecasting and execution by regime & Metrics vary across microstructure regimes. \\
-Prediction-execution gap & Forecast-to-execution tables & Forecasting gains require cost-aware execution checks. \\
-RSEP behavior & Policy comparison and bootstrap & RSEP is a selective-execution diagnostic, not a universal winner. \\
-Stress sensitivity & Fee/latency/spread/depth grids & Robustness is reported by stress axis, not as one PnL aggregate. \\
-Cross-asset transfer & BTC$\leftrightarrow$ETH tables & Transfer is evaluated only for BTC-USDT and ETH-USDT. \\
+Forecast metrics do not imply executable value. & Table~\ref{tab:forecasting} + Table~\ref{tab:execution} & Prediction outputs + replay outputs & L2 replay approximation, not live trading \\
+RSEP mitigates losses in some settings but does not prove profitability. & Table~\ref{tab:execution} + bootstrap comparison & Daily returns + bootstrap script & Net PnL remains negative \\
+Fee stress dominates degradation in the reported grid. & Fig.~\ref{fig:fee_stress} + Table~\ref{tab:stress} & Stress grid CSV & One-axis-at-a-time stress \\
+Regime diagnostics reveal concentrated failure modes. & Worst-regime exposure figure/table & By-regime replay results & Diagnostic taxonomy, not latent-state truth \\
+BTC$\leftrightarrow$ETH transfer is asymmetric and not universal. & Table~\ref{tab:cross_asset} + Table~\ref{tab:cross_asset_bootstrap} & Cross-asset predictions and replay & Only BTC-USDT and ETH-USDT, Binance 2024 \\
+Reproducibility is conditional on licensed raw-data access. & \texttt{DATA\_CARD}, \texttt{SCHEMA}, checksums, sanity-check pipeline & Public supplementary artifact release & Full raw-snapshot reproduction requires licensed access \\
 \bottomrule
 \end{tabular}
-\end{table}
-
-Number consistency is handled by using display values only after they are locked in result artifacts. For example, the forecasting table uses rounded display values that match the final model-selection artifact: SGD macro-F1 $0.4652$, XGBoost macro-F1 $0.4562$, and stride-1 TCN macro-F1 $0.4688$. The execution table uses locked policy outputs: SGD RSEP net PnL $-4{,}437.49$, XGBoost RSEP net PnL $-4{,}303.19$, and stride-1 TCN RSEP net PnL $-814.17$. Cross-asset numbers are likewise reported from the asset-held-out artifacts. The manuscript avoids introducing additional unverified percentages, regime counts, or trading statistics in prose unless the same value appears in a table.
-
-This evidence discipline also shapes the writing style. Phrases such as ``survives execution'', ``mitigates losses'', and ``degrades under stress'' are used only in relative or diagnostic form. The draft avoids language that would imply deployable profit, live-system readiness, exact market reconstruction, queue-aware simulation, or market-universal generalization. Where the results are mixed, the text says so explicitly. In particular, the paper preserves the stride-1 TCN as negative evidence because it prevents a simplistic story in which stronger forecasting metrics automatically justify selective execution. That negative evidence is valuable for ICDM-style evaluation because it exposes a failure mode of a data mining pipeline rather than hiding it behind aggregate model scores.
-
-Finally, the benchmark records enough information for independent reruns under the same configuration: data version, symbol, date range, feature version, split definition, model label, validation threshold, execution cost configuration, stress axis, bootstrap unit, and output artifact path. Raw commercial data may not be redistributed in the camera-ready package, but the paper can still report reproducibility artifacts, configuration files, code paths, and checksum-style summaries. This is the appropriate level of reproducibility for a large-scale financial benchmark built from licensed L2 data.
-
-The artifact package therefore separates restricted data from public reproducibility assets. The released files include schema documentation, benchmark configs, checksum manifests, paper-ready tables, split audits, and a synthetic L2 sample with the same 20-level snapshot schema. A one-command smoke pipeline runs on this synthetic sample and exercises data audit, feature construction, cost-aware labels, regime assignment, chronological splitting, forecasting, execution replay, RSEP, stress-grid evaluation, and report generation. The synthetic sample is not used for scientific claims; it only verifies that the released code paths are executable without commercial raw data.
-
+\end{table*}
 
 \section{Threats to Validity}
 \subsection{Internal Validity}
-The main internal-validity concern is leakage. LOB data are highly autocorrelated, and even small violations of temporal order can inflate both forecasting and execution metrics. The benchmark mitigates this risk by using chronological splits, training-split normalization, validation-only policy tuning, and test-only reporting. Future mid-price values are used only to define labels. They are not used in features, regime assignments, threshold fitting, or execution decisions. The regime taxonomy is likewise causal: rolling diagnostics end at the decision time, and quantile thresholds are fitted before test evaluation. These safeguards do not prove that no implementation bug exists, but they define the intended leakage boundary and make it auditable.
+The main internal-validity concern is leakage. LOB data are highly autocorrelated, and even small violations of temporal order can inflate both forecasting and execution metrics. The benchmark mitigates this risk by using chronological splits, training-split normalization, validation-only policy tuning, and test-only reporting. Future mid-price values are used only to define labels. They are not used in features, regime assignments, threshold fitting, or execution decisions. The regime taxonomy is likewise time-causal: rolling diagnostics end at the decision time, and quantile thresholds are fitted before test evaluation. These safeguards do not prove that no implementation bug exists, but they define the intended leakage boundary and make it auditable.
 
 A second internal-validity concern is policy overfitting. Because RSEP has several risk weights, it could be over-tuned if thresholds were selected from test results. The paper prevents this by treating validation as the only tuning split and by reporting negative cases. The stride-1 TCN is the most important check here: if the paper had tuned RSEP only to support a favorable narrative, the TCN evidence would likely be omitted. Keeping this result in the main text shows that the benchmark is not optimized to make RSEP appear universally superior.
 
-We also maintain a model-selection ledger for the reported Stage 3 experiments. The ledger records the forecasting model family, feature and label versions, prediction artifact, threshold grid, RSEP grid, validation objective, selected thresholds, validation result, and held-out test result for each model-policy scope. Within-asset execution thresholds are selected only on chronological validation rows; asset-held-out execution thresholds are selected only on source-asset validation rows; and stress-grid results keep predictions and selected thresholds fixed. The paper does not claim that data-snooping risk is eliminated. A formal Reality Check or PBO/CSCV diagnostic would require per-candidate daily returns for every tried configuration, whereas the current saved artifacts retain full daily/trade returns only for selected policies. We therefore report conservative controls--the full candidate ledger, validation-only selection, test-only reporting, day-level bootstrap, no retuning under stress, and retained negative evidence--rather than presenting an unsupported overfitting $p$-value.
+The artifact package includes a model-selection ledger with feature versions, label versions, threshold grids, validation objectives, selected parameters, and held-out results. We do not claim data-snooping risk is eliminated; instead, we report validation-only selection, test-only reporting, day-level bootstrap, no stress retuning, and retained negative evidence rather than an unsupported overfitting $p$-value.
 
 \subsection{Construct Validity}
-Construct validity concerns whether the benchmark measures the intended concept. The target concept is not live trading profit; it is forecast-to-execution degradation under observable L2 frictions. The L2 replay captures spread crossing, visible-depth sweep, explicit fee, latency shift, and stress perturbations. It does not capture hidden liquidity, queue position, order cancellations, market impact beyond the visible-depth approximation, or venue-specific routing. Therefore, net PnL in this paper should be read as a diagnostic quantity produced by a controlled replay approximation. It is useful for comparing degradation under the same assumptions, but it is not an estimate of live deployable profit.
+Construct validity concerns whether the benchmark measures the intended concept. The target concept is not live trading profit; it is forecast-to-execution degradation under observable L2 frictions. The L2 replay captures spread crossing, visible-depth sweep, explicit fee, latency shift, and stress perturbations. It does not capture hidden liquidity, queue position, order cancellations, market impact beyond the visible-depth approximation, or venue-specific routing. Therefore, net PnL in this paper should be read as a diagnostic quantity produced by a controlled replay approximation. It is useful for comparing degradation under the same assumptions, but it is not a live execution estimate.
 
 The cost-aware label also affects construct validity. If the threshold is too small, the task collapses toward ordinary direction prediction and may overstate actionable signals. If it is too large, many observations become FLAT and the task may understate weak but real predictive structure. The chosen threshold is therefore part of the benchmark definition. The paper reports forecasting metrics, execution results, and stress tests together so that readers can see how this modeling choice propagates into downstream decisions.
 
 \subsection{External Validity}
 External validity is intentionally narrow. The benchmark evaluates Binance BTC-USDT and ETH-USDT in 2024. The results should not be generalized to all crypto assets, all venues, equities, futures, or foreign exchange without new experiments. Cross-asset BTC$\leftrightarrow$ETH results strengthen the benchmark relative to a single within-asset split, but they remain two directions inside a related pair of highly liquid crypto markets. Assets with lower liquidity, different fee tiers, different market-making behavior, or different exchange microstructure may produce different degradation profiles.
 
-External validity is also limited by the snapshot frequency and the available depth levels. A higher-frequency message feed, deeper book, or market-by-order dataset could change estimated slippage, latency sensitivity, and passive-fill conclusions. This does not invalidate the benchmark. It means that CryptoRegimeShift-LOB should be viewed as a reproducible L2 diagnostic layer. It can be extended when richer data become available, but the present claims remain limited to the L2 snapshot setting.
+External validity is also limited by the snapshot frequency and the available depth levels. A higher-frequency message feed, deeper book, or market-by-order dataset could change estimated slippage, latency sensitivity, and passive-fill conclusions. This does not invalidate the benchmark. It means that CryptoRegimeShift-LOB should be viewed as an artifact-backed L2 diagnostic layer. It can be extended when richer data become available, but the present claims remain limited to the L2 snapshot setting.
 
 \subsection{Interpretive Validity}
 The final threat is interpretive: readers may be tempted to treat lower losses as success or negative net PnL as failure. Both interpretations are incomplete. Lower losses under RSEP show that selective gates can filter some adverse conditions, but they do not prove profitability. Negative net PnL shows that the forecasting signal is thin after cost and stress, but it does not make the benchmark uninformative. The paper's contribution is precisely to expose this gap. A prediction-only benchmark might stop after reporting macro-F1; CryptoRegimeShift-LOB continues until the signal is mapped through execution, stress, and cross-asset diagnostics.
 
-
 \section{Discussion}
-\subsection{Practical Benchmark Takeaways}
-The empirical pattern across sections is consistent: forecasting quality is real but fragile. The models detect short-horizon structure in the L2 book, yet the signal changes character after the decision is exposed to spread crossing, fee, latency, depth, and regime stress. The practical value of the benchmark is not a single trading score. It is an audit trail from prediction to degradation. A practitioner can use the same path to ask where a model fails: before costs, after spread crossing, under latency, in a liquidity regime, or under BTC$\leftrightarrow$ETH transfer. This makes negative net PnL informative because it identifies which part of the financial ML pipeline destroys the apparent signal.
-
-The first takeaway is that model ranking is evaluation-dependent. XGBoost has the highest accuracy, stride-1 TCN has the strongest macro-F1 among full-row comparable baselines, and the tabular models remain more competitive under MCC and execution diagnostics. No single metric orders the models consistently. This disagreement is not noise to be averaged away; it is evidence that LOB forecasting quality is multidimensional. CryptoRegimeShift-LOB lets users check whether a model that improves one prediction metric remains useful after turnover, cost, and selective-execution gates are considered.
-
-The second takeaway is that the stress grid localizes failure modes. Fee stress dominates the reported grid, but latency, spread, and depth remain necessary axes because their importance can change under different venue assumptions or trade sizes. Reporting stress endpoints and robustness areas prevents the evaluation from depending on one favorable cost configuration. In applied financial settings, such sensitivity is often more informative than a single backtest score because it tells users which execution assumption breaks the signal first.
-
-The third takeaway is that selective execution can be compared reproducibly. RSEP, naive thresholds, and cost-aware thresholds are evaluated with fixed predictions, validation-only tuning, and day-level bootstrap. This makes the comparison useful even when all policies remain net negative: the benchmark measures whether a gate reduces exposure, shifts regime concentration, or fails under a stronger forecasting model. The stride-1 TCN result is important here because it prevents a simplistic narrative in which better macro-F1 automatically implies better selective execution.
-
-Finally, cross-asset evaluation changes the evidential standard. Within-asset tests show that the pipeline works on one chronological split; BTC$\leftrightarrow$ETH tests ask whether the same source-tuned pipeline produces interpretable degradation on a related but different asset. Reporting the two directions separately exposes asymmetry in price scale, relative spread, depth, label mix, regime distribution, and calibration. This gives future users a reusable template for adding a new asset or venue: rerun the same evidence path, report the same diagnostics, and upgrade claims only when the new observational layer supports them.
+The practical value of CryptoRegimeShift-LOB is an audit trail from prediction to execution-aware degradation, not a single trading score. Users can ask where a model fails: before costs, after spread crossing, under latency, in a liquidity regime, or under BTC$\leftrightarrow$ETH transfer. Model ranking is evaluation-dependent: accuracy, macro-F1, MCC, and execution diagnostics do not order the baselines identically. The stress grid localizes which execution assumption breaks a signal first, and cross-asset evaluation shows whether the same source-tuned path produces interpretable degradation on a related asset. Future users can add assets, venues, or richer observational layers by rerunning the same evidence path and upgrading claims only when the new data support them.
 
 \section{Limitations and Responsible Use}
 CryptoRegimeShift-LOB is bounded by snapshot-level L2 data. This boundary is useful for a public benchmark because visible-depth replay can be specified, tested, stressed, and reused across models. It also defines what the benchmark cannot observe: exact order arrivals, cancellations, queue priority, hidden liquidity, passive-fill dynamics, venue routing, and matching-engine details. Live deployment would require additional venue-specific evidence, including order-routing logs, measured latency, market-impact analysis, operational risk controls, and compliance review.
 
-
-The forecasting baselines are a controlled diagnostic suite rather than a SOTA model-development claim. The execution results remain net negative across main reported policies, which is a core empirical finding of the benchmark: gross directional signal can be overwhelmed by spread crossing, fees, latency, visible-depth constraints, and regime-dependent risk. RSEP is useful as a diagnostic probe because it shows when selective gates reduce exposure or losses and when they fail; the stride-1 TCN is explicit negative evidence because cost-aware execution is better than RSEP and the RSEP-vs-cost-aware bootstrap interval crosses zero.
+The forecasting baselines are a controlled diagnostic suite rather than an architecture-leaderboard claim. The execution results remain net negative across main reported policies, which is a core empirical finding of the benchmark: gross directional signal can be overwhelmed by spread crossing, fees, latency, visible-depth constraints, and regime-dependent risk. RSEP is useful as a diagnostic probe because it shows when selective gates reduce exposure or losses and when they fail; the stride-1 TCN is explicit negative evidence because cost-aware execution is better than RSEP and the RSEP-vs-cost-aware bootstrap interval crosses zero.
 
 The regime taxonomy is an evaluation device rather than a true latent-state model. The cross-asset analysis is limited to BTC-USDT$\leftrightarrow$ETH-USDT and should be used as directional transfer evidence, not as a universal cross-market result. The benchmark is intended for research evaluation, robustness analysis, and risk-aware model assessment. It should not be interpreted as investment advice, trading recommendation, or evidence that an automated strategy is ready for deployment. This responsible-use boundary is especially important in crypto markets, where market integrity, liquidity fragmentation, operational risk, and retail exposure remain policy concerns \cite{iosco_crypto2023,fsb2023crypto}.
 
-
-Release and reuse should therefore emphasize reproducibility and risk assessment. The benchmark can support comparisons of forecasting models, cost-aware labels, stress-grid assumptions, selective-execution gates, and asset-transfer diagnostics. Future extensions can add L3 data, passive order simulation, venue-specific fee schedules, or additional assets by reusing the same evidence map and adding the missing observational layer before strengthening the claim.
-
-
-\section{Reproducibility Checklist}
-Table~\ref{tab:repro_check} summarizes the minimal reproducibility checks used when preparing the artifact pack. The checklist is included to make the benchmark auditable as an applied data mining contribution. The key point is that each number in the paper is produced after a named stage and is not manually recomputed inside the manuscript.
-
-\begin{table}[t]
-\centering
-\caption{Reproducibility checklist for the benchmark artifact pack.}
-\label{tab:repro_check}
-\scriptsize
-\begin{tabular}{p{0.31\linewidth}p{0.27\linewidth}p{0.32\linewidth}}
-\toprule
-Check & Expected status & Purpose \\
-\midrule
-Schema and audit checks & Pass & Verify fields, timestamps, prices, sizes, spreads, and book state. \\
-Causal feature tests & Pass & Ensure features and regimes are causal at decision time. \\
-Chronological split lock & Pass & Prevent random splits and test-set policy tuning. \\
-Model label registry & Pass & Link each prediction file to one model label and configuration. \\
-Execution sanity tests & Pass & Verify that fees, spread crossing, latency, and depth changes affect replay as expected. \\
-Stress-grid artifacts & Pass & Store fee, latency, spread, and depth perturbation outputs. \\
-Bootstrap artifacts & Pass & Store day-level bootstrap summaries and CIs. \\
-Claim-evidence map & Pass & Restrict wording to supported claims. \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The checklist is not a substitute for public raw data access, but it reduces ambiguity in the paper. For a licensed financial dataset, raw snapshots may be too large or contractually restricted. The reproducibility burden therefore shifts to code paths, configuration files, split definitions, model identifiers, and paper-ready artifact tables. This is why the manuscript avoids unverifiable one-off numbers. If a statistic is not locked by a table, figure, or audit output, it is either omitted or described qualitatively.
-
-This structure also helps future extensions. A researcher who adds L3 data, passive order simulation, another venue, or a new model family can reuse the same evidence map. The new experiment would need to add the missing observational layer rather than silently upgrading the claim. For example, a future L3 extension could claim queue-position analysis only after adding message-level order events and corresponding simulator tests. The current paper does not make that claim, and the checklist makes the limitation explicit.
-
 \section{Conclusion}
-This paper introduced CryptoRegimeShift-LOB, a regime-aware benchmark and evaluation protocol for snapshot-level L2 crypto order book forecasting. The benchmark connects causal features, cost-aware ternary labels, interpretable regimes, forecasting baselines, L2 snapshot execution replay, stress grids, bootstrap diagnostics, and BTC$\leftrightarrow$ETH asset-held-out evaluation. The empirical evidence shows that forecasting signal and execution usefulness can diverge: a model may improve directional metrics while remaining fragile after costs, stress, regime shifts, or asset transfer. CryptoRegimeShift-LOB provides an applied evaluation path for measuring that divergence reproducibly. For high-frequency financial decision contexts, credible LOB evaluation should be cost-aware, regime-aware, stress-tested, and explicit about the observational limits of the data.
+This paper introduced CryptoRegimeShift-LOB as a regime-aware L2 crypto benchmark and evaluation protocol for measuring forecast-to-execution degradation. It connects time-causal features, cost-aware labels, interpretable regimes, forecasting baselines, L2 snapshot replay, stress grids, bootstrap diagnostics, and BTC$\leftrightarrow$ETH transfer in one artifact-backed evidence path. The evidence shows that forecast quality and execution usefulness can diverge under costs, stress, regimes, and asset transfer. Negative net PnL is therefore informative evidence: it localizes where apparent forecasting signal is destroyed by observable execution frictions. The significance of CryptoRegimeShift-LOB is the reusable benchmark protocol: credible LOB evaluation should be cost-aware, regime-aware, stress-tested, transfer-aware, and explicit about the limits of snapshot-level L2 data.
 
-\balance
 \bibliographystyle{IEEEtran}
 \bibliography{custom}
 

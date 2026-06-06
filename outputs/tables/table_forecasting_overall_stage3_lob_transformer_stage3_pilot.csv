@@ -1,0 +1,2 @@
+model,model_type,accuracy,macro_f1,weighted_f1,mcc,balanced_accuracy,n_rows,evaluation_scope
+lob_transformer_stage3_pilot,lob_transformer,0.5788,0.24440503335866903,0.42460486445401574,-0.010240336475152425,0.33316065158579405,10000,temporal_pilot_sample

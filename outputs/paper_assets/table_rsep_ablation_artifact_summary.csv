@@ -1,0 +1,7 @@
+policy,component_removed,n_trades,net_pnl,worst_regime_return,regime_gap,source_artifact,interpretation
+RSEP-full,none,873770,-122646.72922871874,-64999.54489473688,64998.45213333185,outputs/paper_assets/table_6_ablation.csv,diagnostic gate baseline; net PnL remains negative
+RSEP-no-latency-risk,latency_penalty,925696,-131038.1979913744,-69444.32696080935,69443.03952684878,outputs/paper_assets/table_6_ablation.csv,removing one risk term changes exposure; net PnL remains negative
+RSEP-no-liquidity-risk,liquidity_penalty,1376264,-192136.81452354757,-75479.4173309887,75468.17168685854,outputs/paper_assets/table_6_ablation.csv,removing one risk term changes exposure; net PnL remains negative
+RSEP-no-adverse-risk,adverse_selection_penalty,1535701,-217306.20790449396,-70887.92055381821,70884.41812256126,outputs/paper_assets/table_6_ablation.csv,removing one risk term changes exposure; net PnL remains negative
+RSEP-no-regime-penalty,regime_penalty,1344189,-190460.37366639383,-69532.73539366895,69532.02941009845,outputs/paper_assets/table_6_ablation.csv,removing one risk term changes exposure; net PnL remains negative
+cost-aware-only,rsep_gate_not_used,67165,-8891.626690132656,-6753.511714380036,6753.646517074928,outputs/tables/table_forecast_to_execution_tuned_stage3.csv; outputs/tables/table_forecast_to_execution_tuned_by_regime_stage3.csv,baseline threshold without RSEP risk terms; included for artifact completeness

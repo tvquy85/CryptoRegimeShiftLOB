@@ -17,6 +17,8 @@ File nay la skeleton de viet ban IEEE/ICDM tu artifact da khoa. No khong thay th
 - `xgboost_gpu_stage3`: strong GPU tabular baseline / secondary baseline; accuracy `0.5677`, macro-F1 `0.4562`, MCC `0.2364`; caveat: Accuracy cao hon SGD nhung macro-F1/balanced accuracy thap hon; execution chi cai thien nhe..
 - `tcn_gpu_stage3`: temporal pilot diagnostic / appendix; accuracy `0.5282`, macro-F1 `0.4689`, MCC `0.2275`; caveat: Stride-10 sample-window khong nen so truc tiep voi full-row execution..
 - `tcn_gpu_stage3_stride1`: main temporal fairness baseline with negative execution evidence; accuracy `0.5281`, macro-F1 `0.4688`, MCC `0.2274`; caveat: Macro-F1 cao nhat nhung MCC thap hon SGD/XGBoost va RSEP khong thang cost-aware..
+- `deeplob_stage3_pilot`: DeepLOB-style CNN-LSTM smoke/pilot baseline; evidence path `outputs/paper_assets/table_21_deep_baseline_status.csv`; caveat: khong phai full-row execution-ready result.
+- `lob_transformer_stage3_pilot`: lightweight LOB-Transformer smoke/pilot baseline; evidence path `outputs/paper_assets/table_21_deep_baseline_status.csv`; caveat: khong dung cho main execution claim neu chua co full artifact.
 
 ## Cross-asset snapshot
 

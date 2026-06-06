@@ -399,15 +399,18 @@ Không dùng test để chọn threshold hoặc chọn policy chính.
 
 ### Bước 6: Train forecasting baselines
 
-Baseline hiện tại:
+Baseline chính:
 
 - SGD/logistic-style tabular model.
 - XGBoost GPU trên RTX 3090.
+- TCN stride-1 để kiểm tra temporal forecasting fairness.
 
-Baseline mở rộng sau:
+Baseline deep LOB canonical/pilot:
 
-- TCN.
-- DeepLOB-lite.
+- DeepLOB-style CNN-LSTM, tương thích input `[batch, 100, 40]`, tham khảo hướng kiến trúc DeepLOB/LOBFrame nhưng cài native PyTorch trong repo.
+- Lightweight LOB-Transformer, dùng convolutional stem và temporal attention để kiểm tra liệu attention-style model có đáng mở rộng không.
+
+Các deep baseline mới chỉ được đưa vào bảng kết quả chính nếu có artifact generated tương ứng. Nếu chỉ smoke/pilot thì ghi rõ scope, không tự chèn số thủ công.
 
 Đánh giá forecasting bằng accuracy, macro-F1, MCC, balanced accuracy. Quan trọng là báo cáo cả overall và by-regime.
 

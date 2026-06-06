@@ -1,0 +1,9 @@
+term,code_variable,feature_source,formula,normalization,coefficient,fixed_or_tuned,validation_range
+Expected edge,estimated_edge,"prob_up/prob_flat/prob_down; train class_return_means","prob_up*mu_UP + prob_flat*mu_FLAT + prob_down*mu_DOWN","class_return_means fitted on train split only",1.0,derived_not_tuned,not_applicable
+Estimated cost,estimated_cost,"rel_spread; simulator fee_bps","rel_spread + fee_bps/10000","basis points converted to return units",1.0,fixed_from_simulator_config,fee_bps fixed per simulator config
+Latency risk,latency_risk,latency_sensitivity_score,abs(latency_sensitivity_score),causal trailing feature,"lambda_latency=0.25",fixed_singleton_grid,[0.25]
+Liquidity risk,liquidity_risk,liquidity_drought_score,"max(liquidity_drought_score, 0)",causal trailing feature,"lambda_liquidity=0.25",fixed_singleton_grid,[0.25]
+Adverse-selection risk,adverse_risk,adverse_selection_score,"max(adverse_selection_score, 0)",causal trailing feature,"lambda_adverse=0.25",fixed_singleton_grid,[0.25]
+Regime risk,regime_risk,regime,"LIQUIDITY_DROUGHT=1.0; VOLATILE_ILLIQUID=0.75; MOMENTUM_TOXIC=0.5; CHOPPY_MEAN_REVERTING=0.25; otherwise 0.0",categorical penalty map,"lambda_regime=0.15",fixed_singleton_grid,[0.15]
+RSEP margin,theta_edge,validation positive margin quantiles,"theta_edge in {0,q50,q60,q70,q80,q90,q95,q97.5,q99} of max(abs(edge)-required_edge(theta=0),0)",validation split only,1.0,validation_tuned,"0 plus positive-margin validation quantiles"
+Gate,action,"estimated_edge and required_edge","action=+1 if edge>required_edge; action=-1 if edge<-required_edge; else abstain",strict inequality; equality abstains,not_applicable,deterministic_given_parameters,not_applicable

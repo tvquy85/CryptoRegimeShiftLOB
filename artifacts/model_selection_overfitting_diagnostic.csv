@@ -1,0 +1,2 @@
+diagnostic,status,n_candidate_groups,n_threshold_candidates,reason,conservative_control_used
+RealityCheck_PBO_CSCV,INFEASIBLE_FROM_CURRENT_SAVED_ARTIFACTS,21,196,Current artifacts save aggregate validation metrics for all threshold candidates and daily/trade returns only for selected policies; conservative PBO/Reality-Check diagnostics require per-candidate per-period returns.,"ledger of tried candidates, validation-only selection, test-only reporting, day-level bootstrap, stress no-retuning, and negative evidence retained"

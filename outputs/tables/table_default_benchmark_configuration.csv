@@ -1,0 +1,14 @@
+quantity,default_value,unit_or_scope,selection_rule
+horizon h,50,events,fixed in configs/benchmark_default.yaml
+future return r_t_h,(m_t_plus_h - m_t) / (m_t + eps),relative mid-price return,deterministic formula
+relative spread rho_t,(ask_0_price - bid_0_price) / (m_t + eps),relative spread at snapshot t,deterministic local snapshot value
+epsilon eps,1.0e-9,price denominator stabilizer,fixed constant
+fee f,1.0,basis points,fixed benchmark label proxy
+slippage multiplier kappa,0.5,multiplier on rho_t,fixed benchmark label proxy
+tau_t,(1 + kappa) * rho_t + f / 10000,relative return threshold,deterministic per snapshot
+label assignment,"UP if r_t_h > tau_t; DOWN if r_t_h < -tau_t; FLAT otherwise",ternary label,strict inequality with equality mapped to FLAT
+trade size q,not used,label threshold scope,simulator-only parameter
+latency,not used,label threshold scope,simulator-only parameter
+depth sweep,not used,label threshold scope,simulator-only parameter
+asset-specific constants,none,BTC-USDT and ETH-USDT share label constants,no asset-specific fitting
+test split usage,none,label threshold selection,not selected fitted or adjusted on test data
