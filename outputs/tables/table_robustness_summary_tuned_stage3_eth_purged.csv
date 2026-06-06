@@ -1,6 +1,0 @@
-model,axis,robustness_auc
-sgd_eth_stage3_purged,fee_bps,-40332.82468301648
-sgd_eth_stage3_purged,latency_events,-7111.491032150673
-sgd_eth_stage3_purged,spread_multiplier,-6331.667818364278
-sgd_eth_stage3_purged,depth_multiplier,-6124.016429712942
-sgd_eth_stage3_purged,latency_half_life,

@@ -1,39 +1,59 @@
-# DATA_CARD.md
+# Data Card
 
-## Mục tiêu dữ liệu
+## Dataset Purpose
 
-CryptoRegimeShift-LOB dùng dữ liệu snapshot L2 order book để đánh giá forecast-to-execution degradation dưới microstructure regime shifts. Bài toán không phải xây trading bot sinh lời; mục tiêu là benchmark/failure-analysis có kiểm soát.
+CryptoRegimeShift-LOB evaluates how L2 order-book forecasting signals degrade
+when they are passed through cost-aware labels, microstructure regimes, visible
+L2 replay, stress tests, bootstrap uncertainty, and BTC-USDT/ETH-USDT transfer
+diagnostics.
 
-## Dữ liệu thực nghiệm chính
+The dataset is used for benchmark and failure-analysis purposes. It is not used
+to claim a profitable or deployment-ready trading strategy.
 
-- Venue/exchange: Binance.
-- Assets: `BTC-USDT` và `ETH-USDT`.
-- Năm: 2024.
-- Độ sâu: 20 bid levels và 20 ask levels.
-- Dạng quan sát: snapshot-level L2, không phải message-level L3.
-- Cột chính: timestamp, sequence number, symbol/exchange, giá và size từng level.
+## Main Experimental Data
 
-Số khóa dùng trong paper nằm ở `outputs/paper_assets/table_1_dataset_stats.csv`. Raw data thương mại không được redistributable trong artifact public.
+- Provider: Crypto Lake, under commercial data-access terms.
+- Exchange: Binance.
+- Assets: `BTC-USDT` and `ETH-USDT`.
+- Period: full year 2024.
+- Observation type: snapshot-level L2 order book.
+- Depth: 20 bid levels and 20 ask levels.
+- Core columns: timestamps, sequence number, symbol, exchange, and per-level
+  bid/ask price and size.
 
-## Synthetic sample public
+Locked paper statistics are stored in:
 
-`sample_data/l2_synthetic_sample.parquet` là dữ liệu synthetic nhỏ để reviewer chạy smoke pipeline. Nó giữ schema giống raw L2:
+```text
+outputs/paper_assets/table_1_dataset_stats.csv
+```
 
-- `origin_time`, `received_time`, `sequence_number`, `symbol`, `exchange`.
-- `bid_0_price` ... `bid_19_price`, `bid_0_size` ... `bid_19_size`.
-- `ask_0_price` ... `ask_19_price`, `ask_0_size` ... `ask_19_size`.
-- Book không crossed ở best level.
-- Interval khoảng 100 ms.
+## Public Synthetic Data
 
-Synthetic sample không phản ánh phân phối thị trường thật và không được dùng để claim kết quả paper.
+The repository includes synthetic L2 data for reproducibility checks:
 
-## Hạn chế dữ liệu
+```text
+sample_data/l2_synthetic_sample.parquet
+sample_data/BOOK_BINANCE_SYNTH-USDT_JAN-2024.parquet
+supplementary_artifact/data/synthetic/raw/book_snapshots.parquet
+```
 
-- Không có queue priority, hidden liquidity, cancellation stream, passive fill, routing hoặc matching-engine detail.
-- Simulator là L2 market-order replay approximation.
-- Cross-asset claim chỉ là BTC<->ETH đã được evaluate trong phạm vi dữ liệu này, không phải universal policy generalization.
-- Net PnL trong paper là diagnostic quantity, không phải live trading profitability.
+The synthetic data match the expected 20-level schema and exercise the pipeline,
+but they do not represent real market distributions and do not support paper
+metrics.
 
-## Data availability
+## Raw-Format Minimal Sample Policy
 
-Raw BTC/ETH snapshots bị hạn chế bởi license/kích thước. Artifact public thay thế bằng schema, synthetic sample, code, configs, checksums, audit tables và exact commands.
+The supplementary artifact has a `data/raw_sample/` path for a minimal
+Crypto-Lake-style sample. A raw-format sample may be packaged only if it is a
+provider-public sample or an excerpt explicitly allowed for redistribution.
+Otherwise reviewers can place their own provider sample there and run the raw
+sample validator.
+
+## Data Limitations
+
+- No L3 order-event stream is included.
+- No exact queue priority, cancellation race, hidden liquidity, passive fill, or
+  venue-routing model is claimed.
+- L2 replay is a visible-depth approximation.
+- BTC-USDT/ETH-USDT transfer evidence is limited to Binance 2024.
+- Full raw-data reproduction requires licensed access to the same data source.

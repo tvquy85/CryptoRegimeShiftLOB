@@ -1,50 +1,57 @@
-# SCHEMA.md
+# Schema
 
-## Raw L2 snapshot schema
+## Raw L2 Snapshot Schema
 
-Mỗi row là một L2 order book snapshot tại một thời điểm quyết định.
+Each row is one L2 order-book snapshot.
 
-| Nhóm | Cột | Kiểu kỳ vọng | Ghi chú |
+| Group | Columns | Expected type | Notes |
 |---|---|---|---|
-| Timestamp | `origin_time` | timestamp UTC | timestamp chính nếu hợp lệ |
-| Timestamp | `received_time` | timestamp UTC | fallback khi `origin_time` thiếu |
-| Sequence | `sequence_number` | int64 | tie-break khi sort |
-| Metadata | `symbol` | string | ví dụ `BTC-USDT`, `ETH-USDT`, `SYNTH-USDT` |
-| Metadata | `exchange` | string | ví dụ `BINANCE` |
-| Bid prices | `bid_0_price` ... `bid_19_price` | float32/float64 | level 0 là best bid |
-| Bid sizes | `bid_0_size` ... `bid_19_size` | float32/float64 | visible size |
-| Ask prices | `ask_0_price` ... `ask_19_price` | float32/float64 | level 0 là best ask |
-| Ask sizes | `ask_0_size` ... `ask_19_size` | float32/float64 | visible size |
+| Timestamp | `origin_time` | UTC timestamp | Primary event time when valid |
+| Timestamp | `received_time` | UTC timestamp | Fallback timestamp |
+| Sequence | `sequence_number` | int64 | Tie-breaker for sorting |
+| Metadata | `symbol` | string | Example: `BTC-USDT`, `ETH-USDT` |
+| Metadata | `exchange` | string | Example: `BINANCE` |
+| Bid prices | `bid_0_price` ... `bid_19_price` | float | Level 0 is best bid |
+| Bid sizes | `bid_0_size` ... `bid_19_size` | float | Visible size |
+| Ask prices | `ask_0_price` ... `ask_19_price` | float | Level 0 is best ask |
+| Ask sizes | `ask_0_size` ... `ask_19_size` | float | Visible size |
 
-Loader nhận diện raw parquet theo pattern:
+The production loader expects monthly raw parquet files named like:
 
 ```text
 BOOK_<EXCHANGE>_<SYMBOL>_<MON>-2024.parquet
 ```
 
-Ví dụ public smoke:
+The public synthetic sample also provides a loader-compatible filename:
 
 ```text
 sample_data/BOOK_BINANCE_SYNTH-USDT_JAN-2024.parquet
 ```
 
-## Cleaning và ordering
+## Cleaning and Ordering
 
-- Event time = `origin_time` nếu hợp lệ, fallback `received_time`.
-- Loại row best bid/ask không dương hoặc size best level không dương.
-- Loại crossed book ở best level khi cleaning mặc định.
-- Sort theo `event_time`, tie-break bằng `sequence_number`.
+- Use `origin_time` when valid; otherwise fall back to `received_time`.
+- Sort by event time and use `sequence_number` as a tie-breaker.
+- Remove invalid best bid/ask rows by default.
+- Remove crossed best-level books by default.
+- Keep all feature construction causal with respect to the decision time.
 
-## Derived core columns
+## Derived Columns
 
-Sau feature/label pipeline, các cột quan trọng gồm:
+Important derived columns include:
 
-- `event_time`, `mid_price`, `spread`, `rel_spread`.
-- `future_ret_h`, `cost_threshold_t`, `label`, `label_horizon_events`, `label_fee_bps`.
-- Regime features như `liquidity_drought_score`, `adverse_selection_score`, `momentum_score`, `choppiness_score`.
-- `regime` và `split`.
-- Forecasting probabilities: `prob_down`, `prob_flat`, `prob_up`, `pred_label`.
+- `event_time`, `mid_price`, `spread`, `rel_spread`;
+- `future_ret_h`, `cost_threshold_t`, `label`, `label_horizon_events`;
+- `regime`, `split`;
+- risk and regime diagnostic scores;
+- `prob_down`, `prob_flat`, `prob_up`, `pred_label` for predictions.
 
-## Execution columns
+## Execution Columns
 
-Execution/RSEP cần đủ các cột trong `src/utils/execution_columns.py`, bao gồm probabilities, label/regime/split, mid/spread/risk scores và toàn bộ 20-level book columns.
+Execution and RSEP replay require probabilities, labels, regimes, split, mid and
+spread columns, risk scores, and all 20-level bid/ask price and size columns.
+The required column list is implemented in:
+
+```text
+src/utils/execution_columns.py
+```

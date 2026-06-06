@@ -1,4 +1,0 @@
-path,exists,size_gb,num_rows,num_row_groups,num_columns,schema_sha256
-CryptoRegimeShift/data/predictions/predictions.parquet,True,43.0672,167751306,1311,121,fbd811b885195a80fdc201900d8162e71eb8e737267672d6c6b4d75d260da83f
-CryptoRegimeShift/data/splits/splits_eth_stage3.parquet,True,17.542,114414433,437,117,23bdce5788d55b23aafdfd0947378ed5f903fc7d9dcb53479ddafd8d247488f7
-CryptoRegimeShift/data/predictions/predictions_eth_stage3_sgd.parquet,True,32.1201,114414433,894,121,fbd811b885195a80fdc201900d8162e71eb8e737267672d6c6b4d75d260da83f

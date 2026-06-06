@@ -1,4 +1,0 @@
-artifact,stage2_path,stage2_bytes,estimated_stage3_bytes
-predictions,data/predictions/predictions.parquet,19689933606,47503841438
-regimes,data/regimes/regimes.parquet,17553447079,42349364067
-splits,data/splits/splits.parquet,9827926649,23710809723

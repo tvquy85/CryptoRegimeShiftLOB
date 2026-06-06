@@ -1,5 +1,0 @@
-direction,source_symbol,target_symbol,model,mean_diff,ci_low,ci_high,n_days,n_bootstrap
-btc_to_eth,BTC-USDT,ETH-USDT,asset_btc_to_eth_sgd,3681.4666468184178,3314.021626010795,4048.2033377365774,58,1000
-eth_to_btc,ETH-USDT,BTC-USDT,asset_eth_to_btc_sgd,39.27248171204891,34.076004380925085,44.52922650148431,65,1000
-btc_to_eth,BTC-USDT,ETH-USDT,asset_btc_to_eth_sgd_purged,3736.585331350405,3365.26971751712,4109.068633557086,58,1000
-eth_to_btc,ETH-USDT,BTC-USDT,asset_eth_to_btc_sgd_purged,8.726324849989703,-0.29961714447552107,17.375007572029837,65,1000

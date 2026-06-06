@@ -1,2 +1,0 @@
-model,accuracy,macro_f1,weighted_f1,mcc,balanced_accuracy,test_rows,best_validation_policy,best_validation_net_pnl,best_validation_n_trades,best_policy,best_policy_net_pnl,best_policy_n_trades,rsep_vs_cost_aware_mean_diff,rsep_vs_cost_aware_ci_low,rsep_vs_cost_aware_ci_high
-sgd_btc_stage3_purged,0.5594022782892127,0.4650010843935582,0.5353853129160836,0.2363760452911628,0.4633659074220143,33550262,RSEP-full,-717.3301481734611,5764,naive_threshold,-4221.637446280123,30753,69.73741610185671,60.39299803007074,78.52545514691384

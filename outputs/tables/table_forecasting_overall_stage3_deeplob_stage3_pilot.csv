@@ -1,2 +1,0 @@
-model,model_type,accuracy,macro_f1,weighted_f1,mcc,balanced_accuracy,n_rows,evaluation_scope
-deeplob_stage3_pilot,deeplob,0.5791,0.2444852553142085,0.42474423405737444,0.0,0.3333333333333333,10000,temporal_pilot_sample

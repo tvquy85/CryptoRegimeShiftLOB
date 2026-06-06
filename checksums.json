@@ -5,23 +5,28 @@
   "files": [
     {
       "path": "ARTIFACTS.md",
-      "sha256": "29fa16a57fa16d79e2dd9a02b4484b4ad6f1f174f70dc40a37713beb51922af7",
-      "bytes": 2565
+      "sha256": "41481d4b05548b6ef629afd160bbbc230f5cd94b3a8bc12822d78b6248f58e2a",
+      "bytes": 2370
     },
     {
       "path": "DATA_CARD.md",
-      "sha256": "7f287ff89da8e02dd70ada1e7da2d99c783f7e8b74f0054d8bb34c2203d4bb00",
-      "bytes": 2036
+      "sha256": "8e91cbd200ee673c511267ea0b955de2b75c3e0c8989e4d2aa1eefc7c78e43b4",
+      "bytes": 2055
+    },
+    {
+      "path": "README.md",
+      "sha256": "b8e583c90910748e23b384a4014b4c67dce9eae9551782e792544f42ea5c401e",
+      "bytes": 3783
     },
     {
       "path": "REPRODUCIBILITY.md",
-      "sha256": "50a16480f2fe6d56edada342dd644f0e62c015849d6cc742c75fa556607daf32",
-      "bytes": 5528
+      "sha256": "5ff3934339864fbb0246bc944057d6efcbd3fd1fe19094f3cf2da1bf26d6a0fb",
+      "bytes": 4012
     },
     {
       "path": "SCHEMA.md",
-      "sha256": "ee9a27fd0cafc7efc91bc011e59ff04ba3fcae02638c596a284ab06644c45daa",
-      "bytes": 2059
+      "sha256": "dfb91fd60c59e943e316007925ddcfd04eccac9827b968d4d4012a0026d5c598",
+      "bytes": 1951
     },
     {
       "path": "configs/repro_smoke.yaml",
@@ -44,19 +49,34 @@
       "bytes": 3657
     },
     {
-      "path": "outputs/paper_assets/artifact_availability_statement_p0_03.md",
-      "sha256": "629aefc7bb944ea76abbdfdb66055a0453f2ddbf657b4272ad3662e149168115",
-      "bytes": 1353
+      "path": "outputs/paper_assets/fig_4_fee_stress.png",
+      "sha256": "e36d70b26f5c7c11e59e544d548a6216dc601b426bf59217c7d503c6f20f7740",
+      "bytes": 20983
     },
     {
-      "path": "outputs/paper_assets/ieee_draft_skeleton_stage3_14_vi.md",
-      "sha256": "524ee6ff2afbbf0268ac7abd8eaaaaf77c54236243bf5be48a48a3f218bd8aa8",
-      "bytes": 8284
+      "path": "outputs/paper_assets/fig_5_latency_decay.png",
+      "sha256": "01112b9e74dd537238d236772726cc1b88a06d9843f65f122d958316d6845f90",
+      "bytes": 22511
     },
     {
-      "path": "outputs/paper_assets/result_narrative_stage3_11_vi.md",
-      "sha256": "122f669a4c72e1f8f94ade66938b621c53551a970d3631795968c06b67cf6e80",
-      "bytes": 3454
+      "path": "outputs/paper_assets/fig_6_worst_regime.png",
+      "sha256": "1a47aca2f0b7386c658b3ebc997286ad088367a79503d24b9bc5ef3b9c8634e0",
+      "bytes": 44372
+    },
+    {
+      "path": "outputs/paper_assets/fig_7_model_fee_stress.png",
+      "sha256": "0f00cb00a8c4c4c86170e8d14d963d6f0fb6c743e7d01f90ee4d65e6927aa98c",
+      "bytes": 45252
+    },
+    {
+      "path": "outputs/paper_assets/fig_8_model_latency_stress.png",
+      "sha256": "8bfc4d09b8d1b199e9f6d33f58152290677eaa41dea1921d3bfb0e09b37209d7",
+      "bytes": 35531
+    },
+    {
+      "path": "outputs/paper_assets/table_10_model_robustness_comparison.csv",
+      "sha256": "f9ae1ba704d5468efd66e36ca45b2882858e417012ab3d07ff621f4d730f18f8",
+      "bytes": 1005
     },
     {
       "path": "outputs/paper_assets/table_11_acceptance_bar.csv",
@@ -104,6 +124,96 @@
       "bytes": 1702
     },
     {
+      "path": "outputs/paper_assets/table_21_deep_baseline_status.csv",
+      "sha256": "77a0749586d078880672aa8e00618e8ce2445308b5833c1017a5c63eec11a51c",
+      "bytes": 891
+    },
+    {
+      "path": "outputs/paper_assets/table_22_execution_ci_stage3.csv",
+      "sha256": "aecd1f7cd92287963309def977dff5cdec07284a3567224befbe37ba270a91a7",
+      "bytes": 4891
+    },
+    {
+      "path": "outputs/paper_assets/table_23_regime_taxonomy_inputs.csv",
+      "sha256": "d041cb4081a76867f31995eb90762d7e841587fe56b052acac66d79e33c5af91",
+      "bytes": 2677
+    },
+    {
+      "path": "outputs/paper_assets/table_24_regime_counts_by_asset_split.csv",
+      "sha256": "8bcede28202ad01b27d56b050c0c524d97b3a31126ad40d0655daed91288f930",
+      "bytes": 4492
+    },
+    {
+      "path": "outputs/paper_assets/table_25_regime_sensitivity.csv",
+      "sha256": "9ee05828841f903ca80e3ac0993a99730135a336d675cd3611d112c0e00ca68b",
+      "bytes": 5653
+    },
+    {
+      "path": "outputs/paper_assets/table_26_cross_asset_distribution_shift.csv",
+      "sha256": "af8c3146d62b7b4793a407b8c6be773714f2de30ce02074dcedbbfd55d21719f",
+      "bytes": 3962
+    },
+    {
+      "path": "outputs/paper_assets/table_27_cross_asset_label_regime_calibration.csv",
+      "sha256": "f37765d272c2be6f8ac775bea69ebe7cd1b7a3beeb6e8ddcc7e59e329295b8de",
+      "bytes": 1463
+    },
+    {
+      "path": "outputs/paper_assets/table_28_reference_audit_summary.csv",
+      "sha256": "842b486feeeab6f843d790e41bd1f586d2b31cdc76d368686d4664cbb2ce7ac1",
+      "bytes": 73
+    },
+    {
+      "path": "outputs/paper_assets/table_2_regime_distribution.csv",
+      "sha256": "2344ed13ee61f1387f71caddff5e99bd565fd94651387439b7bfc35812742043",
+      "bytes": 5443
+    },
+    {
+      "path": "outputs/paper_assets/table_3_forecasting_by_regime.csv",
+      "sha256": "1acc46ecf35233e2e8f4d9ea364ea8dc57758c597bd0932d9d86d93a4d9f45c9",
+      "bytes": 1426
+    },
+    {
+      "path": "outputs/paper_assets/table_4_forecast_to_execution.csv",
+      "sha256": "7649f374b8c3f463f78066952c47b11a836f7949422ddaba65a1fbab29f94ba2",
+      "bytes": 2718
+    },
+    {
+      "path": "outputs/paper_assets/table_5_robust_policy.csv",
+      "sha256": "75c1d0f9bf5387f41ebe5102620c82c8d154af59d12ec632fdc7c84bbf298ffa",
+      "bytes": 1124
+    },
+    {
+      "path": "outputs/paper_assets/table_6_ablation.csv",
+      "sha256": "75c1d0f9bf5387f41ebe5102620c82c8d154af59d12ec632fdc7c84bbf298ffa",
+      "bytes": 1124
+    },
+    {
+      "path": "outputs/paper_assets/table_7_model_comparison.csv",
+      "sha256": "6770597b49287760d5a9ff52981eecf92712ce85be207e198a6d8cf5f193b84a",
+      "bytes": 1268
+    },
+    {
+      "path": "outputs/paper_assets/table_8_model_forecasting_execution_comparison.csv",
+      "sha256": "329ea17c82f340b4dc1351142e983f952049c240375c6500259b017d9e38f0d4",
+      "bytes": 2577
+    },
+    {
+      "path": "outputs/paper_assets/table_9_model_stress_comparison.csv",
+      "sha256": "9f680a0245e143fa280be4b85bf3a7896b46dc6fa68d387862cf8c7e6a9f66ba",
+      "bytes": 10123
+    },
+    {
+      "path": "outputs/paper_assets/table_baseline_coverage.csv",
+      "sha256": "2fb4edd4332643182a576cb5c9fd4c1afbdef6bff53c397890e1754a57819764",
+      "bytes": 912
+    },
+    {
+      "path": "outputs/paper_assets/table_rsep_ablation_artifact_summary.csv",
+      "sha256": "9ba8b2b1cf9316f1174a3680beb0c22114c85a7d391856201642ab237673b882",
+      "bytes": 1435
+    },
+    {
       "path": "sample_data/BOOK_BINANCE_SYNTH-USDT_JAN-2024.parquet",
       "sha256": "4d60ca86d81762c9d5287adeb49485669733c7b1857d7bf08457a082ce476f39",
       "bytes": 5780730
@@ -130,8 +240,8 @@
     },
     {
       "path": "scripts/verify_artifacts.py",
-      "sha256": "a8e53bcef0b9fd582d3e158c826c0684086f5c9f56f2a180c0434e6d74d7caf4",
-      "bytes": 8986
+      "sha256": "8b33405711e925121440b1a77e9e71bdf6ff2305f2db47da7307033430fa23c0",
+      "bytes": 10288
     }
   ]
 }

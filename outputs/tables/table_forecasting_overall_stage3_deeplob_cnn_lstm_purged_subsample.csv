@@ -1,2 +1,0 @@
-model,model_type,accuracy,macro_f1,weighted_f1,mcc,balanced_accuracy,n_rows,evaluation_scope
-deeplob_cnn_lstm_purged_subsample,deeplob,0.43666,0.34834627779651867,0.437442466125745,0.022064539763890206,0.348711542375189,50000,temporal_pilot_sample

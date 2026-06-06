@@ -1,64 +1,106 @@
 # CryptoRegimeShift-LOB
 
-Pipeline thực nghiệm cho benchmark và đánh giá chính sách HFT robust dưới dịch chuyển regime vi cấu trúc L2, phục vụ paper ICDM 2026.
+Reviewer-facing artifact repository for the ICDM 2026 Applied Track paper:
 
-## Mục tiêu nghiên cứu
+**CryptoRegimeShift-LOB: Regime-Aware Forecast-to-Execution Evaluation for Crypto L2 Order Books**
 
-- Audit dữ liệu L2 snapshot-level.
-- Xây feature store causal, label cost-aware và taxonomy regime.
-- Đánh giá forecasting baseline theo regime.
-- Mô phỏng marketable execution với phí, latency và stress môi trường.
-- Đánh giá forecast-to-execution degradation và RSEP.
+This repository is an artifact-backed benchmark and evaluation protocol. It is
+not a trading bot, not a live-execution system, and not a public redistribution
+of commercial Crypto Lake raw data.
 
-## Giả định dữ liệu
+## What This Repository Provides
 
-- Dữ liệu raw hiện tại đặt ngoài project tại `../data/full2024`.
-- Repo hiện đã xác nhận đủ 12 tháng `BOOK_BINANCE_BTC-USDT_*_2024.parquet`.
-- Chưa thấy `ETH-USDT`; các tác vụ asset-held-out được giữ trong config nhưng là dependency mở.
-- Dữ liệu là L2 snapshot, không phải message-level/L3. Không dùng để claim exact queue priority hay passive fill realism.
+- Paper source and compiled PDF under `Paper_ICDM_2026/`.
+- Source code, configs, and tests for the L2 benchmark pipeline.
+- A public synthetic 20-level L2 sample for smoke testing.
+- A self-contained `supplementary_artifact/` package with commands, verifier,
+  checksums, schema documentation, and synthetic end-to-end outputs.
+- Paper-ready evidence tables and figures under `outputs/paper_assets/`.
+- Audit CSV/JSON artifacts that connect the paper claims to reproducible checks.
 
-## Cấu hình đường dẫn
+## What Is Not Included
 
-Chỉnh `configs/data_crypto_lake.yaml` nếu raw path thay đổi.
+The full BTC-USDT and ETH-USDT 2024 L2 snapshots are commercial data and are not
+redistributed. Full numerical reproduction requires licensed access to the same
+provider data and the documented configuration. The public synthetic data are
+only for exercising code paths and schema checks; they are not used for paper
+metrics or scientific claims.
 
-## Chạy smoke test
+The repository also excludes checkpoints, model weights, large prediction and
+backtest parquet files, logs, caches, and temporary build archives.
 
-```powershell
-cd CryptoRegimeShift
-powershell -ExecutionPolicy Bypass -File scripts/smoke_test.ps1
+## Quick Start for Reviewers
+
+Run the self-contained supplementary artifact:
+
+```bash
+cd supplementary_artifact
+python -m pip install -r requirements.txt
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run_synthetic_end_to_end.ps1
+python scripts/09_verify_paper_tables.py --mode synthetic
+python scripts/10_make_artifact_manifest.py --mode synthetic
+pytest -q
 ```
 
-Smoke test dùng một lát cắt nhỏ của BTC tháng 1 để chạy audit, feature, labels, regimes, split, baseline, backtest, RSEP, report pack và unit tests.
+On Unix-like systems, use:
 
-## Chạy từng bước
-
-```powershell
-cd CryptoRegimeShift
-python scripts/00_audit_data.py --config configs/data_crypto_lake.yaml --run-id manual_audit --stage stage_0_sanity_check
-python scripts/01_build_features.py --config configs/features.yaml --run-id manual_features --stage stage_0_sanity_check
-python scripts/02_label_regimes.py --config configs/regimes.yaml --run-id manual_regimes --stage stage_0_sanity_check
-python scripts/03_make_splits.py --config configs/experiments_smoke.yaml --run-id manual_splits --stage stage_0_sanity_check
-python scripts/04_train_forecasters.py --config configs/models.yaml --run-id manual_train --stage stage_0_sanity_check --model sgd
-python scripts/05_backtest_forecasts.py --config configs/simulator.yaml --run-id manual_backtest --stage stage_0_sanity_check
-python scripts/06_run_rsep.py --config configs/simulator.yaml --run-id manual_rsep --stage stage_0_sanity_check
-python scripts/07_run_stress_grid.py --config configs/experiments_smoke.yaml --run-id manual_stress --stage stage_0_sanity_check
-python scripts/08_generate_report_pack.py --config configs/experiments_smoke.yaml --run-id manual_report --stage stage_0_sanity_check
+```bash
+cd supplementary_artifact
+python -m pip install -r requirements.txt
+bash scripts/run_synthetic_end_to_end.sh
+python scripts/09_verify_paper_tables.py --mode synthetic
+python scripts/10_make_artifact_manifest.py --mode synthetic
+pytest -q
 ```
 
-## Paper assets
+The synthetic pipeline validates schema compatibility, cost-aware labels,
+purged chronological splits, a small forecasting baseline, visible-depth replay,
+RSEP diagnostics, stress tests, bootstrap summaries, and manifest checksums.
 
-- Bảng/tổng hợp nằm trong `outputs/tables` và `outputs/paper_assets`.
-- Hình nằm trong `outputs/figures` và `outputs/paper_assets`.
-- Audit stage bằng tiếng Việt nằm trong `audits/`.
+## Paper Build
 
-## Claim boundaries
+The paper candidate is:
 
-- Claim được phép: benchmark L2 snapshot, regime-held-out/stress evaluation, forecast-to-execution degradation, RSEP.
-- Không claim: order-event reconstruction chính xác, queue priority, hidden liquidity, live-trading readiness.
+```text
+Paper_ICDM_2026/main.tex
+Paper_ICDM_2026/main.pdf
+```
 
-## Dữ liệu và license
+To rebuild locally:
 
-- Không commit raw paid data.
-- Không commit token/API key.
-- Giữ mọi raw path trong YAML config.
+```powershell
+cd Paper_ICDM_2026
+..\tectonic.exe main.tex
+```
 
+The committed `main.pdf` is the reviewer-facing 10-page Applied Track draft.
+
+## Repository Layout
+
+```text
+Paper_ICDM_2026/          IEEE paper source, figures, bibliography, PDF
+supplementary_artifact/   self-contained reviewer artifact package
+src/                      benchmark implementation modules
+scripts/                  full-pipeline and audit scripts
+configs/                  benchmark, replay, stress, and model configs
+tests/                    unit and protocol tests
+sample_data/              small public synthetic L2 sample
+outputs/paper_assets/     paper-ready tables and figures
+artifacts/                compact audit CSV/JSON files
+docs/                     executable method specifications
+```
+
+## Core Claim Boundaries
+
+The paper supports an artifact-backed evaluation protocol for:
+
+- cost-aware L2 forecasting labels;
+- diagnostic microstructure regimes;
+- forecast-to-execution degradation;
+- visible-depth L2 replay under fees, latency, spread, and depth stress;
+- RSEP as an inspectable diagnostic gate;
+- BTC-USDT and ETH-USDT transfer diagnostics only.
+
+The paper does **not** claim profitability, live-trading readiness, exact L3
+queue reconstruction, hidden-liquidity modeling, passive-fill realism, or
+universal market generalization.

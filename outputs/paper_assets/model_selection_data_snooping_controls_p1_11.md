@@ -1,5 +1,0 @@
-# Model-selection and data-snooping controls
-
-All policy thresholds in the main benchmark are selected on validation rows only. Within-asset policies use the chronological validation split, while asset-held-out policies use source-asset validation and reserve target-asset test rows for final reporting. RSEP risk weights are fixed benchmark constants from a singleton grid, and only the edge threshold is validation-selected. Stress-grid evaluations keep predictions and selected thresholds fixed; they do not retrain models or retune execution gates.
-
-The model-selection ledger records every saved Stage 3 policy-threshold grid candidate and the selected validation row. The current artifacts do not contain per-candidate daily returns for all candidates, so a formal Reality Check/PBO analysis is not claimed. Instead, the paper reports a conservative audit trail: candidate counts, validation-only selection, day-level bootstrap on selected policies, stress no-retuning, and retained negative evidence.

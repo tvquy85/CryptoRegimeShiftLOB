@@ -1,2 +1,0 @@
-model,mean_diff,ci_low,ci_high,n_days,n_bootstrap
-sgd_btc_stage3_purged,69.73741610185671,60.39299803007074,78.52545514691384,65,1000

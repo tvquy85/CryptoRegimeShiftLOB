@@ -1,7 +1,0 @@
-model,model_type,accuracy,macro_f1,weighted_f1,mcc,balanced_accuracy,n_rows,evaluation_scope
-tcn_gpu_stage3_pilot,tcn,0.564524,0.4725758850626813,0.5664342423957283,0.238845363657221,0.474145185809358,500000,temporal_pilot_sample
-deeplob_faithful_lite_stage3_pilot,deeplob_faithful_lite,0.519808,0.4336985742115964,0.5164677947565084,0.1605575771462028,0.4420893009972202,500000,temporal_pilot_sample
-deeplob_stage3_pilot,deeplob,0.5791,0.2444852553142085,0.4247442340573744,0.0,0.3333333333333333,10000,temporal_pilot_sample
-lob_transformer_stage3_pilot,lob_transformer,0.5788,0.244405033358669,0.4246048644540157,-0.0102403364751524,0.333160651585794,10000,temporal_pilot_sample
-deeplob_cnn_lstm_purged_subsample,deeplob,0.43666,0.3483462777965186,0.437442466125745,0.0220645397638902,0.348711542375189,50000,temporal_pilot_sample
-deeplob_cnn_lstm_stage3_full,deeplob,0.5804,0.2448325318484772,0.42630240445456846,0.0,0.3333333333333333,10000,stage3_deeplob_full_train_stride10_valid_test

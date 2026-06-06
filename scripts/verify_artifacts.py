@@ -17,6 +17,7 @@ from data.audit_schema import book_columns, validate_schema
 
 CHECKSUM_PATH = "checksums.json"
 REQUIRED_PUBLIC_FILES = [
+    "README.md",
     "ARTIFACTS.md",
     "DATA_CARD.md",
     "REPRODUCIBILITY.md",
@@ -31,10 +32,18 @@ REQUIRED_PUBLIC_FILES = [
     "scripts/run_smoke_pipeline.sh",
     "scripts/run_smoke_pipeline.ps1",
     "scripts/verify_artifacts.py",
-    "outputs/paper_assets/artifact_availability_statement_p0_03.md",
 ]
 PUBLIC_PAPER_ASSETS = [
     "outputs/paper_assets/table_1_dataset_stats.csv",
+    "outputs/paper_assets/table_2_regime_distribution.csv",
+    "outputs/paper_assets/table_3_forecasting_by_regime.csv",
+    "outputs/paper_assets/table_4_forecast_to_execution.csv",
+    "outputs/paper_assets/table_5_robust_policy.csv",
+    "outputs/paper_assets/table_6_ablation.csv",
+    "outputs/paper_assets/table_7_model_comparison.csv",
+    "outputs/paper_assets/table_8_model_forecasting_execution_comparison.csv",
+    "outputs/paper_assets/table_9_model_stress_comparison.csv",
+    "outputs/paper_assets/table_10_model_robustness_comparison.csv",
     "outputs/paper_assets/table_11_acceptance_bar.csv",
     "outputs/paper_assets/table_12_claim_support_matrix.csv",
     "outputs/paper_assets/table_13_claim_to_evidence_map.csv",
@@ -43,8 +52,21 @@ PUBLIC_PAPER_ASSETS = [
     "outputs/paper_assets/table_18_default_benchmark_configuration.csv",
     "outputs/paper_assets/table_19_chronological_split_audit.csv",
     "outputs/paper_assets/table_20_rsep_term_mapping.csv",
-    "outputs/paper_assets/ieee_draft_skeleton_stage3_14_vi.md",
-    "outputs/paper_assets/result_narrative_stage3_11_vi.md",
+    "outputs/paper_assets/table_21_deep_baseline_status.csv",
+    "outputs/paper_assets/table_22_execution_ci_stage3.csv",
+    "outputs/paper_assets/table_23_regime_taxonomy_inputs.csv",
+    "outputs/paper_assets/table_24_regime_counts_by_asset_split.csv",
+    "outputs/paper_assets/table_25_regime_sensitivity.csv",
+    "outputs/paper_assets/table_26_cross_asset_distribution_shift.csv",
+    "outputs/paper_assets/table_27_cross_asset_label_regime_calibration.csv",
+    "outputs/paper_assets/table_28_reference_audit_summary.csv",
+    "outputs/paper_assets/table_baseline_coverage.csv",
+    "outputs/paper_assets/table_rsep_ablation_artifact_summary.csv",
+    "outputs/paper_assets/fig_4_fee_stress.png",
+    "outputs/paper_assets/fig_5_latency_decay.png",
+    "outputs/paper_assets/fig_6_worst_regime.png",
+    "outputs/paper_assets/fig_7_model_fee_stress.png",
+    "outputs/paper_assets/fig_8_model_latency_stress.png",
 ]
 SMOKE_OUTPUTS = [
     "data/interim/audit/audit_by_day_synthetic_smoke.parquet",

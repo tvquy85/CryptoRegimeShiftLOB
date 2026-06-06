@@ -1,2 +1,0 @@
-model,model_type,accuracy,macro_f1,weighted_f1,mcc,balanced_accuracy,n_rows,evaluation_scope
-tcn_gpu_stage3_pilot,tcn,0.564524,0.4725758850626813,0.5664342423957283,0.23884536365722103,0.474145185809358,500000,temporal_pilot_sample

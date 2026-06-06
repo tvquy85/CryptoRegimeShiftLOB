@@ -12,6 +12,41 @@ data/reports/
 outputs/checkpoints/
 outputs/logs/
 outputs/smoke/
+
+# Local/internal planning and Codex work files. These remain local and are not
+# part of the reviewer-facing artifact repository.
+AGENTS.md
+TongQuan.md
+MoTa.md
+ThucNghiem.md
+guideline.md
+rule.md
+fix_v*.md
+supplementaryartifact_guide.md
+final_submission_readiness_report.md
+
+# Internal audit/history folders not needed by reviewers.
+audits/
+outputs/snapshots/
+outputs/figures/
+outputs/tables/
+data/tmp_stage2_diag_check/
+artifacts/*cleanup*
+artifacts/audit_stage3_16_disk_cleanup*
+artifacts/stage3_16_disk_cleanup*
+
+# Paper editing notes kept local only.
+Paper_ICDM_2026/*SUMMARY.md
+Paper_ICDM_2026/REFERENCE_AUDIT.md
+Paper_ICDM_2026/cited_keys.txt
+Paper_ICDM_2026/STYLE_EDIT_SUMMARY.md
+
+# Draft narrative assets kept local only.
+docs/model_selection_audit.md
+docs/narrative_revision_plan.md
+docs/reference_audit.md
+docs/submission_format_check.md
+outputs/paper_assets/*.md
 outputs/tables/*synthetic_smoke*
 outputs/figures/*SYNTH-USDT*
 outputs/figures/*synthetic_smoke*

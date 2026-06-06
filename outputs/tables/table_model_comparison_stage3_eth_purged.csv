@@ -1,2 +1,0 @@
-model,accuracy,macro_f1,weighted_f1,mcc,balanced_accuracy,test_rows,best_validation_policy,best_validation_net_pnl,best_validation_n_trades,best_policy,best_policy_net_pnl,best_policy_n_trades,rsep_vs_cost_aware_mean_diff,rsep_vs_cost_aware_ci_low,rsep_vs_cost_aware_ci_high
-sgd_eth_stage3_purged,0.43606197941719504,0.4313338291034183,0.4331865848068767,0.1497053037817747,0.43211829435206384,22882887,RSEP-full,-610.7564607913753,3948,RSEP-full,-6030.338030059139,42889,20.666848851401877,2.051921612335561,42.88022299332695

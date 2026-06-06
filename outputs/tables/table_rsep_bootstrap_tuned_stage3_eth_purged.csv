@@ -1,2 +1,0 @@
-model,mean_diff,ci_low,ci_high,n_days,n_bootstrap
-sgd_eth_stage3_purged,20.666848851401877,2.051921612335561,42.88022299332695,58,1000

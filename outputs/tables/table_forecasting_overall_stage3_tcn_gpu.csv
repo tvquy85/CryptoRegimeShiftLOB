@@ -1,2 +1,0 @@
-model,model_type,accuracy,macro_f1,weighted_f1,mcc,balanced_accuracy,n_rows,prediction_rows,evaluation_scope,stride_train,stride_valid,stride_test
-tcn_gpu_stage3,tcn,0.5281819498872293,0.46887761563821256,0.5285413347492102,0.22747740579993114,0.46919960219284107,3354594,7709170,stage3_temporal_execution_ready,10,10,10
