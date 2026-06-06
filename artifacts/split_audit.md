@@ -1,0 +1,24 @@
+# Split audit P0-02
+
+## Muc tieu
+
+Audit train/validation/test chronological split cho artifact Stage 3 hien co, dong thoi ghi ro rui ro horizon-boundary leakage.
+
+## Ket luan nhanh
+
+- So boundary co horizon overlap: `0`.
+- Cac artifact duoc audit dung split theo thoi gian 60/20/20 va co validation split ro rang.
+- Tat ca boundary train/validation co `horizon_overlap_rows=0` theo explicit purge rows da khai bao.
+- Split artifact co the dung cho submission sau khi downstream forecasting/execution/stress/bootstrap duoc regenerate tu cung split nay.
+- Test split chi nen dung cho final reporting; model/scaler fit tren train, policy/RSEP tune tren validation.
+
+## Bang audit
+
+| symbol | source_artifact | split | rows | start_utc | end_utc | horizon_events | next_split | boundary_gap_rows | boundary_gap_time_ms | explicit_purge_rows | horizon_overlap_rows | status | notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| BTC-USDT | data/splits/splits_btc_stage3_purged.parquet | train | 100650733 | 2024-01-01T00:00:03.168000Z | 2024-08-31T23:31:51.313999872Z | 50 | valid | 50 | 6301.0 | 50 | 0 | PASS | Boundary to valid is purged by at least the label horizon. |
+| BTC-USDT | data/splits/splits_btc_stage3_purged.parquet | valid | 33550211 | 2024-08-31T23:31:57.615000064Z | 2024-10-28T19:13:05.114000128Z | 50 | test | 50 | 7199.999 | 50 | 0 | PASS | Boundary to test is purged by at least the label horizon. |
+| BTC-USDT | data/splits/splits_btc_stage3_purged.parquet | test | 33550262 | 2024-10-28T19:13:12.313999872Z | 2024-12-31T23:59:52.813999872Z | 50 |  |  |  |  | 0 | PASS | Final reporting split; no later split boundary. |
+| ETH-USDT | data/splits/splits_eth_stage3_purged.parquet | train | 68648609 | 2024-01-01T00:00:02.968000Z | 2024-09-09T09:54:32.315000064Z | 50 | valid | 50 | 10300.0 | 50 | 0 | PASS | Boundary to valid is purged by at least the label horizon. |
+| ETH-USDT | data/splits/splits_eth_stage3_purged.parquet | valid | 22882837 | 2024-09-09T09:54:42.615000064Z | 2024-11-04T08:49:01.515000064Z | 50 | test | 50 | 8199.999 | 50 | 0 | PASS | Boundary to test is purged by at least the label horizon. |
+| ETH-USDT | data/splits/splits_eth_stage3_purged.parquet | test | 22882887 | 2024-11-04T08:49:09.714999808Z | 2024-12-31T23:59:42.214999808Z | 50 |  |  |  |  | 0 | PASS | Final reporting split; no later split boundary. |

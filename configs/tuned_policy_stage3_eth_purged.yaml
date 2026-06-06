@@ -1,0 +1,39 @@
+models:
+  sgd_eth_stage3_purged:
+    class_returns:
+      DOWN: -0.00039622894837521017
+      FLAT: 2.436586328258272e-07
+      UP: 0.0003969561366830021
+    min_trade_days: 5
+    min_trades: 2288
+    rsep_tuning:
+      lambda_selection: fixed_singleton_grid
+      selected_parameters:
+        lambda_adverse: 0.25
+        lambda_latency: 0.25
+        lambda_liquidity: 0.25
+        lambda_regime: 0.15
+        theta_edge: 2.1242022e-05
+      theta_edge_include_zero: true
+      theta_edge_quantiles:
+      - 0.5
+      - 0.6
+      - 0.7
+      - 0.8
+      - 0.9
+      - 0.95
+      - 0.975
+      - 0.99
+      theta_edge_selection: validation_positive_margin_quantiles
+      validation_objective: max_net_pnl_with_min_trades_and_min_trade_days
+    selected_thresholds:
+      RSEP-full: 2.1242022e-05
+      cost_aware_threshold: 4.6214689e-05
+      naive_threshold: 0.6
+    test_bootstrap_rsep_vs_cost_aware:
+      ci_high: 42.88022299332695
+      ci_low: 2.051921612335561
+      mean_diff: 20.666848851401877
+      n_bootstrap: 1000
+      n_days: 58
+    validation_objective: max_net_pnl_with_min_trades_and_min_trade_days

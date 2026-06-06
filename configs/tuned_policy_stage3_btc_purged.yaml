@@ -1,0 +1,39 @@
+models:
+  sgd_btc_stage3_purged:
+    class_returns:
+      DOWN: -0.00033045478630810976
+      FLAT: 7.906444210448171e-08
+      UP: 0.0003308548766653985
+    min_trade_days: 5
+    min_trades: 2396
+    rsep_tuning:
+      lambda_selection: fixed_singleton_grid
+      selected_parameters:
+        lambda_adverse: 0.25
+        lambda_latency: 0.25
+        lambda_liquidity: 0.25
+        lambda_regime: 0.15
+        theta_edge: 9.8234061e-05
+      theta_edge_include_zero: true
+      theta_edge_quantiles:
+      - 0.5
+      - 0.6
+      - 0.7
+      - 0.8
+      - 0.9
+      - 0.95
+      - 0.975
+      - 0.99
+      theta_edge_selection: validation_positive_margin_quantiles
+      validation_objective: max_net_pnl_with_min_trades_and_min_trade_days
+    selected_thresholds:
+      RSEP-full: 9.8234061e-05
+      cost_aware_threshold: 0.000126666764
+      naive_threshold: 0.8
+    test_bootstrap_rsep_vs_cost_aware:
+      ci_high: 78.52545514691384
+      ci_low: 60.39299803007074
+      mean_diff: 69.73741610185671
+      n_bootstrap: 1000
+      n_days: 65
+    validation_objective: max_net_pnl_with_min_trades_and_min_trade_days

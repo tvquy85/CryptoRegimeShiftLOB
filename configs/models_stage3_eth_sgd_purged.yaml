@@ -1,0 +1,11 @@
+inherits: configs/models.yaml
+artifact_namespace: eth_purged
+symbols:
+  - ETH-USDT
+split_output: data/splits/splits_eth_stage3_purged.parquet
+prediction_output: data/predictions/predictions_eth_stage3_sgd_purged.parquet
+model_dir: outputs/checkpoints
+model_name: sgd
+model_label: sgd_eth_stage3_purged
+random_seed: 7
+

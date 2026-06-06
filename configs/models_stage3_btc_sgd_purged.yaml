@@ -1,0 +1,11 @@
+inherits: configs/models.yaml
+artifact_namespace: btc_purged
+symbols:
+  - BTC-USDT
+split_output: data/splits/splits_btc_stage3_purged.parquet
+prediction_output: data/predictions/predictions_btc_stage3_sgd_purged.parquet
+model_dir: outputs/checkpoints
+model_name: sgd
+model_label: sgd_btc_stage3_purged
+random_seed: 7
+
