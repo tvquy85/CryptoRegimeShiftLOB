@@ -14,7 +14,8 @@ from torch import nn
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from evaluation.classification_eval import classification_by_regime, classification_from_parquet, classification_summary
-from models.deeplob_lite import DeepLOBFaithfulLite
+from models.deeplob import DeepLOB
+from models.lob_transformer import LOBTransformerLite
 from models.temporal_cnn import TemporalCNN
 from models.torch_datasets import (
     ID_TO_LABEL,
@@ -32,17 +33,22 @@ from utils.seed import set_global_seed
 
 MODEL_LABELS = {
     "tcn": "tcn_gpu_stage3_pilot",
+    "deeplob": "deeplob_stage3_pilot",
     "deeplob_faithful_lite": "deeplob_faithful_lite_stage3_pilot",
+    "lob_transformer": "lob_transformer_stage3_pilot",
 }
 PREDICTION_OUTPUTS = {
     "tcn": "data/predictions/predictions_stage3_tcn_gpu_pilot.parquet",
+    "deeplob": "data/predictions/predictions_stage3_deeplob_pilot.parquet",
     "deeplob_faithful_lite": "data/predictions/predictions_stage3_deeplob_faithful_lite_pilot.parquet",
+    "lob_transformer": "data/predictions/predictions_stage3_lob_transformer_pilot.parquet",
 }
+SUPPORTED_TEMPORAL_MODELS = sorted(MODEL_LABELS)
 
 
 def main() -> None:
     parser = common_parser("Huấn luyện temporal LOB baseline từ predictions.parquet.")
-    parser.add_argument("--model", choices=["tcn", "deeplob_faithful_lite"], default=None)
+    parser.add_argument("--model", choices=SUPPORTED_TEMPORAL_MODELS, default=None)
     parser.add_argument("--max-train-windows", type=int, default=None)
     parser.add_argument("--max-valid-windows", type=int, default=None)
     parser.add_argument("--max-test-windows", type=int, default=None)
@@ -80,11 +86,12 @@ def main() -> None:
 
     scaler = None
     if bool(temporal_cfg.get("normalize_features", True)):
+        scaler_max_rows_cfg = temporal_cfg.get("scaler_max_rows", 1_000_000)
         scaler = fit_lob_feature_scaler(
             source_path,
             split="train",
             levels=levels,
-            max_rows=int(temporal_cfg.get("scaler_max_rows", 1_000_000)),
+            max_rows=None if scaler_max_rows_cfg is None else int(scaler_max_rows_cfg),
             source_batch_rows=source_batch_rows,
         )
         scaler_path = resolve_path(config, f"outputs/checkpoints/{args.run_id}_{model_label}_scaler.json")
@@ -157,6 +164,7 @@ def main() -> None:
             "state_dict": model.state_dict(),
             "levels": levels,
             "window": window,
+            "model_config": temporal_model_config(model_key, temporal_cfg, input_dim=levels * 4),
             "best_epoch": best_epoch,
             "best_valid_macro_f1": best_macro_f1,
             "history": history,
@@ -183,7 +191,13 @@ def main() -> None:
     test_rows = int(by_regime["n_rows"].sum()) if not by_regime.empty else 0
     tables = resolve_path(config, "outputs/tables")
     tables.mkdir(parents=True, exist_ok=True)
-    overall_row = {"model": model_label, "model_type": model_key, **overall, "n_rows": test_rows, "evaluation_scope": "temporal_pilot_sample"}
+    overall_row = {
+        "model": model_label,
+        "model_type": model_key,
+        **overall,
+        "n_rows": test_rows,
+        "evaluation_scope": str(temporal_cfg.get("evaluation_scope", "temporal_pilot_sample")),
+    }
     overall_path = tables / f"table_forecasting_overall_stage3_{model_label}.csv"
     by_regime_path = tables / f"table_forecasting_by_regime_stage3_{model_label}.csv"
     pd.DataFrame([overall_row]).to_csv(overall_path, index=False)
@@ -197,7 +211,7 @@ def main() -> None:
     comparison_path = tables / "table_temporal_vs_tabular_comparison_stage3.csv"
     write_temporal_comparison(tables, comparison_path, overall_row)
     audit_path = write_temporal_audit(
-        resolve_path(config, "audits/audit_stage3_8_temporal_gpu_pilot.md"),
+        resolve_path(config, str(temporal_cfg.get("audit_output", "audits/audit_stage3_8_temporal_gpu_pilot.md"))),
         model_label=model_label,
         model_key=model_key,
         device=str(device),
@@ -242,17 +256,40 @@ def temporal_prediction_output_path(config: dict[str, Any], model_key: str) -> P
 
 
 def build_temporal_model(model_key: str, config: dict[str, Any], *, input_dim: int) -> nn.Module:
+    model_config = temporal_model_config(model_key, config, input_dim=input_dim)
+    if model_key == "tcn":
+        return TemporalCNN(**model_config)
+    if model_key in {"deeplob", "deeplob_faithful_lite"}:
+        return DeepLOB(**model_config)
+    if model_key == "lob_transformer":
+        return LOBTransformerLite(**model_config)
+    raise ValueError(f"Temporal model không được hỗ trợ: {model_key}")
+
+
+def temporal_model_config(model_key: str, config: dict[str, Any], *, input_dim: int) -> dict[str, Any]:
     hidden_dim = int(config.get("hidden_dim", 64))
     if model_key == "tcn":
-        return TemporalCNN(input_dim=input_dim, hidden_dim=hidden_dim)
-    if model_key == "deeplob_faithful_lite":
+        return {"input_dim": input_dim, "hidden_dim": hidden_dim}
+    if model_key in {"deeplob", "deeplob_faithful_lite"}:
         if input_dim != 40:
             raise ValueError("DeepLOB-faithful-lite yêu cầu đúng 40 LOB features từ 10 levels.")
-        return DeepLOBFaithfulLite(
-            conv_channels=int(config.get("deeplob_conv_channels", 16)),
-            inception_channels=int(config.get("deeplob_inception_channels", 32)),
-            hidden_dim=hidden_dim,
-        )
+        return {
+            "input_dim": input_dim,
+            "conv_channels": int(config.get("deeplob_conv_channels", 16)),
+            "inception_channels": int(config.get("deeplob_inception_channels", 32)),
+            "hidden_dim": hidden_dim,
+        }
+    if model_key == "lob_transformer":
+        if input_dim != 40:
+            raise ValueError("LOB-Transformer requires exactly 40 LOB features from 10 levels.")
+        return {
+            "input_dim": input_dim,
+            "conv_channels": int(config.get("transformer_conv_channels", config.get("deeplob_conv_channels", 16))),
+            "inception_channels": int(config.get("transformer_inception_channels", 32)),
+            "n_heads": int(config.get("transformer_heads", 4)),
+            "n_layers": int(config.get("transformer_layers", 1)),
+            "dropout": float(config.get("transformer_dropout", 0.1)),
+        }
     raise ValueError(f"Temporal model không được hỗ trợ: {model_key}")
 
 

@@ -88,7 +88,7 @@ def main() -> None:
     table_path = resolve_path(config, f"outputs/tables/{table_name}")
     stage_audit_path = resolve_path(config, f"data/interim/audit/audit_by_day_{stage_ns}.parquet")
     stage_table_out = stage_table_path(resolve_path(config, "outputs/tables"), "table_data_audit", args.stage, namespace=namespace)
-    figure_dir = resolve_path(config, "outputs/figures")
+    figure_dir = resolve_path(config, str(config.get("figures_output", "outputs/figures")))
     figure_dir.mkdir(parents=True, exist_ok=True)
     write_frame(audit, audit_path)
     write_frame(audit, stage_audit_path)

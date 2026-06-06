@@ -31,6 +31,8 @@ def main() -> None:
     parser.add_argument("--run-id", required=True)
     parser.add_argument("--stage", default="stage_3_full_scale")
     parser.add_argument("--batch-size", type=int, default=250_000)
+    parser.add_argument("--output-path", default=None)
+    parser.add_argument("--model-label", default=None)
     args = parser.parse_args()
 
     source_config = load_config(args.source_config)
@@ -48,15 +50,16 @@ def main() -> None:
     logger.info("Source input=%s; target input=%s; n_features=%s.", source_path, target_path, len(features))
     bundle = train_streaming_sgd(source_path, features, source_config, batch_size=args.batch_size)
 
+    model_label = args.model_label or f"asset_{args.direction}_sgd"
     output_path = resolve_path(
         source_config,
-        f"data/predictions/predictions_asset_{args.direction}_sgd.parquet",
+        args.output_path or f"data/predictions/predictions_asset_{args.direction}_sgd.parquet",
     )
     target_rows = stream_target_test_predictions(target_path, output_path, bundle, batch_size=args.batch_size)
     overall, by_regime = classification_from_parquet(output_path, split="test")
     overall_row = {
         "direction": args.direction,
-        "model": f"asset_{args.direction}_sgd",
+        "model": model_label,
         "source_symbol": args.source_symbol,
         "target_symbol": args.target_symbol,
         **overall,
@@ -64,7 +67,7 @@ def main() -> None:
     }
     by_regime.insert(0, "target_symbol", args.target_symbol)
     by_regime.insert(0, "source_symbol", args.source_symbol)
-    by_regime.insert(0, "model", f"asset_{args.direction}_sgd")
+    by_regime.insert(0, "model", model_label)
     by_regime.insert(0, "direction", args.direction)
 
     tables_dir = project_root(source_config) / "outputs" / "tables"
@@ -72,12 +75,12 @@ def main() -> None:
     upsert_csv(
         tables_dir / "table_asset_heldout_forecasting_stage3.csv",
         pd.DataFrame([overall_row]),
-        key_columns=["direction"],
+        key_columns=["direction", "model"],
     )
     upsert_csv(
         tables_dir / "table_asset_heldout_forecasting_by_regime_stage3.csv",
         by_regime,
-        key_columns=["direction", "regime"],
+        key_columns=["direction", "model", "regime"],
     )
 
     checkpoint = resolve_path(source_config, f"{source_config.get('model_dir', 'outputs/checkpoints')}/{args.run_id}_sgd.joblib")
@@ -96,6 +99,7 @@ def main() -> None:
         },
         extra={
             "direction": args.direction,
+            "model_label": model_label,
             "source_symbol": args.source_symbol,
             "target_symbol": args.target_symbol,
             "features": features,

@@ -42,6 +42,7 @@ def main() -> None:
     namespace = artifact_namespace(config)
     partition_mode = partitioned_stage_enabled(config, args.stage, start=args.start, end=args.end)
     if partition_mode:
+        figure_dir = resolve_path(config, str(config.get("figures_output", "outputs/figures")))
         thresholds = fit_thresholds_from_parquet(
             label_path,
             train_fraction=float(config.get("train_fraction_for_thresholds", 0.6)),
@@ -69,7 +70,7 @@ def main() -> None:
         table_paths = save_partitioned_regime_tables(regime_path, resolve_path(config, "outputs/tables"), stage=args.stage, namespace=namespace)
         stability_figures = save_stage2_stability_figures(
             resolve_path(config, "outputs/tables"),
-            resolve_path(config, "outputs/figures"),
+            figure_dir,
             stage=args.stage,
             namespace=namespace,
         )
@@ -90,6 +91,7 @@ def main() -> None:
             **stability_figures,
         }
     else:
+        figure_dir = resolve_path(config, str(config.get("figures_output", "outputs/figures")))
         labels = read_frame(label_path)
         thresholds = fit_thresholds(
             labels,
@@ -101,8 +103,8 @@ def main() -> None:
         save_thresholds(thresholds, thresholds_path)
         table_paths = save_regime_tables(regimes, resolve_path(config, "outputs/tables"), namespace=namespace, stage=args.stage)
         symbol = args.symbol or str(regimes["symbol"].dropna().iloc[0])
-        figure_path = save_regime_calendar(regimes, resolve_path(config, "outputs/figures"), symbol)
-        transition_map = save_transition_map(regimes, resolve_path(config, "outputs/figures"))
+        figure_path = save_regime_calendar(regimes, figure_dir, symbol)
+        transition_map = save_transition_map(regimes, figure_dir)
         residual_sample = regimes
         regime_counts = regimes["regime"].value_counts().to_dict()
         extra_artifacts = {"calendar": figure_path, "transition_map": transition_map}
@@ -125,7 +127,7 @@ def main() -> None:
     write_frame(alignment, alignment_path.with_suffix(".parquet"))
     alignment.to_csv(alignment_path, index=False)
     write_frame(projection, projection_path)
-    projection_figure = save_residual_projection(projection, resolve_path(config, "outputs/figures"))
+    projection_figure = save_residual_projection(projection, figure_dir)
     write_run_metadata(
         config,
         args.run_id,

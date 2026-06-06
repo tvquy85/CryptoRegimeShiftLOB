@@ -7,6 +7,9 @@ import pandas as pd
 
 from simulator.execution_costs import fee_cost
 
+REPLAY_LEVELS = 20
+EPS = 1.0e-9
+
 
 @dataclass(frozen=True)
 class ExecutionConfig:
@@ -21,6 +24,7 @@ class ExecutionConfig:
 
 
 def simulate_signals(frame: pd.DataFrame, actions: pd.Series, config: ExecutionConfig, hold_events: int = 50) -> pd.DataFrame:
+    _validate_replay_columns(frame)
     trades: list[dict[str, object]] = []
     last_exec = -10**12
     values = frame.reset_index(drop=True)
@@ -73,35 +77,92 @@ def simulate_signals(frame: pd.DataFrame, actions: pd.Series, config: ExecutionC
 
 
 def _sweep(row: pd.Series, side: int, notional: float, config: ExecutionConfig) -> dict[str, float]:
+    if not _valid_top_of_book(row):
+        return _empty_fill()
+
     mid = float(row["mid_price"])
-    spread = float(row["spread"]) * config.spread_multiplier
-    target_qty = notional / max(mid, 1.0e-9)
+    target_qty = notional / max(mid, EPS)
     remaining = target_qty
     filled_qty = 0.0
     total_value = 0.0
     best_px = None
-    for level in range(20):
+    for level in range(REPLAY_LEVELS):
         if side > 0:
-            raw_price = float(row[f"ask_{level}_price"])
+            raw_price = _positive_float(row.get(f"ask_{level}_price"))
+            raw_size = _positive_float(row.get(f"ask_{level}_size"))
+            if raw_price is None or raw_size is None:
+                continue
             price = mid + (raw_price - mid) * config.spread_multiplier
-            size = float(row[f"ask_{level}_size"]) * config.depth_multiplier
+            size = raw_size * config.depth_multiplier
         else:
-            raw_price = float(row[f"bid_{level}_price"])
+            raw_price = _positive_float(row.get(f"bid_{level}_price"))
+            raw_size = _positive_float(row.get(f"bid_{level}_size"))
+            if raw_price is None or raw_size is None:
+                continue
             price = mid - (mid - raw_price) * config.spread_multiplier
-            size = float(row[f"bid_{level}_size"]) * config.depth_multiplier
+            size = raw_size * config.depth_multiplier
+        if not np.isfinite(price) or price <= 0 or not np.isfinite(size) or size <= 0:
+            continue
         if best_px is None:
             best_px = price
-        take = min(remaining, max(size, 0.0))
+        take = min(remaining, size)
         total_value += take * price
         filled_qty += take
         remaining -= take
         if remaining <= 1.0e-12:
             break
-    fill_ratio = filled_qty / max(target_qty, 1.0e-9)
+    fill_ratio = filled_qty / max(target_qty, EPS)
     if not config.partial_fill and fill_ratio < 1.0:
         filled_qty = 0.0
         total_value = 0.0
         fill_ratio = 0.0
-    avg_price = total_value / max(filled_qty, 1.0e-9)
+    if filled_qty <= 0:
+        return _empty_fill()
+    avg_price = total_value / max(filled_qty, EPS)
     slippage = abs(avg_price - float(best_px or avg_price))
     return {"price": avg_price, "quantity": filled_qty, "fill_ratio": fill_ratio, "slippage": slippage}
+
+
+def _required_replay_columns() -> list[str]:
+    columns = ["mid_price"]
+    for level in range(REPLAY_LEVELS):
+        columns.extend(
+            [
+                f"bid_{level}_price",
+                f"bid_{level}_size",
+                f"ask_{level}_price",
+                f"ask_{level}_size",
+            ]
+        )
+    return columns
+
+
+def _validate_replay_columns(frame: pd.DataFrame) -> None:
+    missing = [column for column in _required_replay_columns() if column not in frame.columns]
+    if missing:
+        raise ValueError(f"Missing required L2 replay columns: {missing}")
+
+
+def _valid_top_of_book(row: pd.Series) -> bool:
+    mid = _positive_float(row.get("mid_price"))
+    bid = _positive_float(row.get("bid_0_price"))
+    ask = _positive_float(row.get("ask_0_price"))
+    bid_size = _positive_float(row.get("bid_0_size"))
+    ask_size = _positive_float(row.get("ask_0_size"))
+    if any(value is None for value in [mid, bid, ask, bid_size, ask_size]):
+        return False
+    return bool(bid <= ask)
+
+
+def _positive_float(value: object) -> float | None:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not np.isfinite(number) or number <= 0:
+        return None
+    return number
+
+
+def _empty_fill() -> dict[str, float]:
+    return {"price": 0.0, "quantity": 0.0, "fill_ratio": 0.0, "slippage": 0.0}

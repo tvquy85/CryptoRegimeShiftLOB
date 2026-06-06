@@ -20,6 +20,7 @@ from utils.config import load_config, resolve_path
 from utils.io import read_filtered_frame, write_run_metadata
 from utils.logging import configure_logging
 from utils.execution_columns import execution_columns
+from utils.stress_grid import load_stress_grid, stress_grid_source
 
 
 def main() -> None:
@@ -39,6 +40,7 @@ def main() -> None:
     ).reset_index(drop=True)
     class_returns = class_return_means_from_parquet(predictions_path)
     base_sim = ExecutionConfig(**config.get("simulator", {}))
+    stress_grid = load_stress_grid(config)
     policy_cfg = config.get("policies", {}).get("rsep", {})
     if namespace.use_tuned_policy:
         tuned_path = stage_config_path(resolve_path(config, "configs"), "tuned_policy", args.stage, namespace=artifact_ns)
@@ -52,7 +54,7 @@ def main() -> None:
     actions, _ = rsep_actions(test, class_returns, policy_cfg, base_sim.fee_bps)
     hold_events = int(test["label_horizon_events"].iloc[0])
     rows = []
-    for axis, levels in config.get("stress_grid", {}).items():
+    for axis, levels in stress_grid.items():
         for level in levels:
             stressed = apply_stress(base_sim, **{axis: level})
             trades = simulate_signals(test, actions, stressed, hold_events=hold_events)
@@ -91,6 +93,11 @@ def main() -> None:
         args.stage,
         "07_run_stress_grid.py",
         artifacts={"stress_table": tables / "table_stress_grid.csv", "robustness_table": tables / "table_robustness_summary.csv"},
+        extra={
+            "stress_grid_source": stress_grid_source(config),
+            "stress_grid": stress_grid,
+            "protocol": "fixed predictions and fixed tuned thresholds; one execution axis perturbed at a time",
+        },
     )
     logger.info("Stress grid xong với %s dòng summary.", len(stress))
 

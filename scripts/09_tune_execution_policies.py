@@ -16,11 +16,14 @@ from evaluation.classification_eval import classification_from_parquet
 from evaluation.trading_eval import trading_pack
 from features.returns_labels import class_return_means_from_parquet
 from policies.tuning import (
+    apply_rsep_grid_defaults,
     actions_for_selected_policy,
     edge_threshold_grid,
     evaluate_candidate,
     naive_threshold_grid,
     rsep_base_required_edge,
+    rsep_theta_grid_options,
+    rsep_tuning_metadata,
     tune_policy,
 )
 from simulator.market_order_sim import ExecutionConfig, simulate_signals
@@ -55,12 +58,20 @@ def main() -> None:
     valid_rows_used = int(len(valid))
 
     sim_cfg = ExecutionConfig(**config.get("simulator", {}))
-    rsep_cfg = config.get("policies", {}).get("rsep", {})
+    rsep_grid = _load_rsep_grid_config(config)
+    rsep_cfg = apply_rsep_grid_defaults(config.get("policies", {}).get("rsep", {}), rsep_grid)
+    rsep_quantiles, rsep_include_zero = rsep_theta_grid_options(rsep_grid)
     rsep_required = rsep_base_required_edge(valid, rsep_cfg, sim_cfg.fee_bps)
     grids = {
         "naive_threshold": naive_threshold_grid(),
         "cost_aware_threshold": edge_threshold_grid(valid, class_returns),
-        "RSEP-full": edge_threshold_grid(valid, class_returns, rsep_base_required_edge=rsep_required),
+        "RSEP-full": edge_threshold_grid(
+            valid,
+            class_returns,
+            rsep_base_required_edge=rsep_required,
+            quantiles=rsep_quantiles,
+            include_zero=rsep_include_zero,
+        ),
     }
 
     selected = {}
@@ -173,6 +184,11 @@ def main() -> None:
     tuned_config.setdefault("models", {})[namespace.model_label] = {
         "class_returns": class_returns,
         "selected_thresholds": {policy: result.threshold for policy, result in selected.items()},
+        "rsep_tuning": rsep_tuning_metadata(
+            rsep_grid,
+            rsep_cfg,
+            selected_theta=selected.get("RSEP-full").threshold if selected.get("RSEP-full") else None,
+        ),
         "validation_objective": "max_net_pnl_with_min_trades_and_min_trade_days",
         "min_trades": max(1000, int(0.0005 * valid_rows_used)),
         "min_trade_days": 5,
@@ -194,6 +210,11 @@ def main() -> None:
         extra={
             "model_label": namespace.model_label,
             "selected_thresholds": {policy: result.threshold for policy, result in selected.items()},
+            "rsep_tuning": rsep_tuning_metadata(
+                rsep_grid,
+                rsep_cfg,
+                selected_theta=selected.get("RSEP-full").threshold if selected.get("RSEP-full") else None,
+            ),
             "bootstrap_rsep_vs_cost_aware": bootstrap,
             "valid_rows_used_for_tuning": valid_rows_used,
             "valid_max_rows": valid_max_rows,
@@ -212,6 +233,14 @@ def _upsert_model_rows(path: Path, rows: pd.DataFrame, model_label: str) -> None
 
 
 def _load_existing_tuned_config(path: Path) -> dict[str, object]:
+    if not path.exists():
+        return {}
+    with path.open("r", encoding="utf-8") as handle:
+        return yaml.safe_load(handle) or {}
+
+
+def _load_rsep_grid_config(config: dict[str, object]) -> dict[str, object]:
+    path = resolve_path(config, str(config.get("rsep_grid_config", "configs/rsep_grid.yaml")))
     if not path.exists():
         return {}
     with path.open("r", encoding="utf-8") as handle:

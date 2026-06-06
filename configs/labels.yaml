@@ -1,8 +1,6 @@
-inherits: configs/features.yaml
-label_horizon_events: 50
+inherits: configs/benchmark_default.yaml
 fee_bps_grid:
   - 0.0
   - 1.0
   - 2.0
   - 5.0
-

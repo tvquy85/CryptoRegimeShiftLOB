@@ -5,10 +5,14 @@ temporal:
   model_name: tcn
   model_labels:
     tcn: tcn_gpu_stage3_pilot
+    deeplob: deeplob_stage3_pilot
     deeplob_faithful_lite: deeplob_faithful_lite_stage3_pilot
+    lob_transformer: lob_transformer_stage3_pilot
   prediction_outputs:
     tcn: data/predictions/predictions_stage3_tcn_gpu_pilot.parquet
+    deeplob: data/predictions/predictions_stage3_deeplob_pilot.parquet
     deeplob_faithful_lite: data/predictions/predictions_stage3_deeplob_faithful_lite_pilot.parquet
+    lob_transformer: data/predictions/predictions_stage3_lob_transformer_pilot.parquet
   levels: 10
   window: 100
   normalize_features: true
@@ -19,6 +23,11 @@ temporal:
   hidden_dim: 64
   deeplob_conv_channels: 16
   deeplob_inception_channels: 32
+  transformer_conv_channels: 16
+  transformer_inception_channels: 32
+  transformer_heads: 4
+  transformer_layers: 1
+  transformer_dropout: 0.1
   learning_rate: 0.001
   weight_decay: 0.0001
   epochs: 5

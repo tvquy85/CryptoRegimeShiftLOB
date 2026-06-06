@@ -21,6 +21,49 @@ directions:
     target_test_rows: 22882887
     valid_rows_used_for_tuning: 4792895
     validation_objective: source_valid_max_net_pnl_with_min_trades_and_min_trade_days
+  btc_to_eth:asset_btc_to_eth_sgd_purged:
+    checkpoint: D:\LOBProj\DeepLOB\CryptoRegimeShift\outputs\checkpoints\stage3_16_asset_btc_to_eth_sgd_purged_v001_sgd.joblib
+    class_returns_source_train:
+      DOWN: -0.00033045478630810976
+      FLAT: 7.906444210448171e-08
+      UP: 0.0003308548766653985
+    model_label: asset_btc_to_eth_sgd_purged
+    rsep_tuning:
+      lambda_selection: fixed_singleton_grid
+      selected_parameters:
+        lambda_adverse: 0.25
+        lambda_latency: 0.25
+        lambda_liquidity: 0.25
+        lambda_regime: 0.15
+        theta_edge: 9.8234061e-05
+      theta_edge_include_zero: true
+      theta_edge_quantiles:
+      - 0.5
+      - 0.6
+      - 0.7
+      - 0.8
+      - 0.9
+      - 0.95
+      - 0.975
+      - 0.99
+      theta_edge_selection: validation_positive_margin_quantiles
+      validation_objective: max_net_pnl_with_min_trades_and_min_trade_days
+    selected_thresholds:
+      RSEP-full: 9.8234061e-05
+      cost_aware_threshold: 0.000126666764
+      naive_threshold: 0.8
+    source_symbol: BTC-USDT
+    target_bootstrap_rsep_vs_cost_aware:
+      ci_high: 4109.068633557086
+      ci_low: 3365.26971751712
+      mean_diff: 3736.585331350405
+      n_bootstrap: 1000
+      n_days: 58
+    target_predictions: D:\LOBProj\DeepLOB\CryptoRegimeShift\data\predictions\predictions_asset_btc_to_eth_sgd_purged.parquet
+    target_symbol: ETH-USDT
+    target_test_rows: 22882887
+    valid_rows_used_for_tuning: 4792888
+    validation_objective: source_valid_max_net_pnl_with_min_trades_and_min_trade_days
   eth_to_btc:
     checkpoint: D:\LOBProj\DeepLOB\CryptoRegimeShift\outputs\checkpoints\stage_eth_asset_eth_to_btc_sgd_v001_sgd.joblib
     class_returns_source_train:
@@ -42,4 +85,47 @@ directions:
     target_symbol: BTC-USDT
     target_test_rows: 33550262
     valid_rows_used_for_tuning: 4576578
+    validation_objective: source_valid_max_net_pnl_with_min_trades_and_min_trade_days
+  eth_to_btc:asset_eth_to_btc_sgd_purged:
+    checkpoint: D:\LOBProj\DeepLOB\CryptoRegimeShift\outputs\checkpoints\stage3_16_asset_eth_to_btc_sgd_purged_v001_sgd.joblib
+    class_returns_source_train:
+      DOWN: -0.00039622894837521017
+      FLAT: 2.436586328258272e-07
+      UP: 0.0003969561366830021
+    model_label: asset_eth_to_btc_sgd_purged
+    rsep_tuning:
+      lambda_selection: fixed_singleton_grid
+      selected_parameters:
+        lambda_adverse: 0.25
+        lambda_latency: 0.25
+        lambda_liquidity: 0.25
+        lambda_regime: 0.15
+        theta_edge: 2.1242022e-05
+      theta_edge_include_zero: true
+      theta_edge_quantiles:
+      - 0.5
+      - 0.6
+      - 0.7
+      - 0.8
+      - 0.9
+      - 0.95
+      - 0.975
+      - 0.99
+      theta_edge_selection: validation_positive_margin_quantiles
+      validation_objective: max_net_pnl_with_min_trades_and_min_trade_days
+    selected_thresholds:
+      RSEP-full: 2.1242022e-05
+      cost_aware_threshold: 4.6214689e-05
+      naive_threshold: 0.6
+    source_symbol: ETH-USDT
+    target_bootstrap_rsep_vs_cost_aware:
+      ci_high: 17.375007572029837
+      ci_low: -0.29961714447552107
+      mean_diff: 8.726324849989703
+      n_bootstrap: 1000
+      n_days: 65
+    target_predictions: D:\LOBProj\DeepLOB\CryptoRegimeShift\data\predictions\predictions_asset_eth_to_btc_sgd_purged.parquet
+    target_symbol: BTC-USDT
+    target_test_rows: 33550262
+    valid_rows_used_for_tuning: 4576568
     validation_objective: source_valid_max_net_pnl_with_min_trades_and_min_trade_days

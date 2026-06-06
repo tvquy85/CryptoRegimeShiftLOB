@@ -1,0 +1,24 @@
+inherits: configs/features.yaml
+
+# Paper-facing default benchmark configuration for cost-aware ternary labels.
+# These values preserve the operational label semantics used by the Stage 3
+# BTC/ETH experiments.
+benchmark_label:
+  horizon_events: 50
+  return_definition: "(m_t_plus_h - m_t) / (m_t + eps)"
+  rel_spread_definition: "(ask_0_price - bid_0_price) / (m_t + eps)"
+  fee_bps: 1.0
+  slippage_buffer_multiplier: 0.5
+  tau_formula: "(1 + slippage_buffer_multiplier) * rel_spread_t + fee_bps / 10000"
+  eps: 1.0e-9
+  trade_size_q: not_used_in_label
+  latency_events: not_used_in_label
+  depth_sweep: not_used_in_label
+  asset_specific_constants: none
+  threshold_selection: fixed_from_config_no_train_valid_test_fitting
+
+# Operational aliases consumed by the existing feature/label pipeline.
+label_horizon_events: 50
+fee_bps: 1.0
+slippage_buffer_multiplier: 0.5
+eps: 1.0e-9

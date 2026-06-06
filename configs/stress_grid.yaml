@@ -1,0 +1,53 @@
+# Canonical benchmark stress grid for CryptoRegimeShift-LOB.
+#
+# Protocol:
+# - Held-out predictions are fixed.
+# - Model/scaler parameters are not retrained.
+# - Policy thresholds and RSEP parameters are not retuned.
+# - Exactly one execution axis is perturbed at a time.
+# - Stress results are diagnostic L2 visible-depth replay perturbations,
+#   not live venue or profitability claims.
+
+baseline_execution:
+  latency_events: 1
+  fee_bps: 1.0
+  spread_multiplier: 1.0
+  depth_multiplier: 1.0
+  partial_fill: true
+  min_fill_ratio: 0.5
+  trade_notional: 1000.0
+  cooldown_events: 3
+
+stress_grid:
+  fee_bps:
+    - 0.0
+    - 1.0
+    - 2.0
+    - 5.0
+    - 10.0
+  latency_events:
+    - 0
+    - 1
+    - 5
+    - 10
+  spread_multiplier:
+    - 1.0
+    - 1.5
+    - 2.0
+  depth_multiplier:
+    - 1.0
+    - 0.75
+    - 0.5
+
+stress_axis_units:
+  fee_bps: basis points
+  latency_events: snapshot events
+  spread_multiplier: ask/bid distance from mid-price multiplier
+  depth_multiplier: visible displayed size multiplier
+
+no_retuning_rules:
+  predictions_fixed: true
+  class_return_means_fixed: true
+  policy_thresholds_fixed: true
+  rsep_parameters_fixed: true
+  target_test_only_reporting: true

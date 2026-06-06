@@ -15,6 +15,8 @@ from torch import nn
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from evaluation.classification_eval import classification_from_parquet
+from models.deeplob import DeepLOB
+from models.lob_transformer import LOBTransformerLite
 from models.temporal_cnn import TemporalCNN
 from models.torch_datasets import ID_TO_LABEL, TemporalFeatureScaler, iter_temporal_window_batches
 from utils.artifacts import model_stage_table_path, stage_table_path
@@ -32,7 +34,7 @@ DEFAULT_OUTPUT = "data/predictions/predictions_stage3_tcn_gpu_execution_ready.pa
 
 
 def main() -> None:
-    parser = common_parser("Sinh TCN temporal predictions execution-ready tu checkpoint Stage 3.8.")
+    parser = common_parser("Sinh temporal LOB predictions execution-ready tu checkpoint.")
     parser.add_argument("--checkpoint", default=None)
     parser.add_argument("--output", default=None)
     parser.add_argument("--max-train-windows", type=int, default=None)
@@ -55,7 +57,7 @@ def main() -> None:
     if not source_path.exists():
         raise FileNotFoundError(f"Khong tim thay prediction source: {source_path}")
     if not checkpoint_path.exists():
-        raise FileNotFoundError(f"Khong tim thay TCN checkpoint: {checkpoint_path}")
+        raise FileNotFoundError(f"Khong tim thay temporal checkpoint: {checkpoint_path}")
 
     model_label = str(infer_cfg.get("model_label", config.get("model_label", "tcn_gpu_stage3")))
     source_batch_rows = int(infer_cfg.get("source_batch_rows", 250_000))
@@ -63,7 +65,7 @@ def main() -> None:
     use_amp = bool(infer_cfg.get("mixed_precision", True)) and device.type == "cuda"
     pin_memory = bool(infer_cfg.get("pin_memory", True)) and device.type == "cuda"
     logger.info(
-        "TCN inference source=%s output=%s checkpoint=%s model=%s device=%s cuda=%s amp=%s pin_memory=%s.",
+        "Temporal inference source=%s output=%s checkpoint=%s model=%s device=%s cuda=%s amp=%s pin_memory=%s.",
         source_path,
         output_path,
         checkpoint_path,
@@ -74,7 +76,8 @@ def main() -> None:
         pin_memory,
     )
 
-    model, scaler, checkpoint_meta = load_tcn_checkpoint(checkpoint_path, infer_cfg, device=device)
+    model, scaler, checkpoint_meta = load_temporal_checkpoint(checkpoint_path, infer_cfg, device=device)
+    model_key = str(checkpoint_meta["model_key"])
     levels = int(checkpoint_meta["levels"])
     window = int(checkpoint_meta["window"])
     input_dim = levels * 4
@@ -144,7 +147,7 @@ def main() -> None:
     tables.mkdir(parents=True, exist_ok=True)
     overall_row = {
         "model": model_label,
-        "model_type": "tcn",
+        "model_type": model_key,
         **overall,
         "n_rows": test_rows,
         "prediction_rows": prediction_rows,
@@ -157,7 +160,7 @@ def main() -> None:
     by_regime_path = model_stage_table_path(tables, "table_forecasting_by_regime", args.stage, model_label)
     pd.DataFrame([overall_row]).to_csv(overall_path, index=False)
     by_regime.insert(0, "model", model_label)
-    by_regime.insert(1, "model_type", "tcn")
+    by_regime.insert(1, "model_type", model_key)
     by_regime.to_csv(by_regime_path, index=False)
     upsert_model_rows(stage_table_path(tables, "table_forecasting_overall_temporal_execution_ready", args.stage), pd.DataFrame([overall_row]), ["model"])
     upsert_model_rows(stage_table_path(tables, "table_forecasting_by_regime_temporal_execution_ready", args.stage), by_regime, ["model", "regime"])
@@ -208,7 +211,7 @@ def main() -> None:
         },
     )
     logger.info(
-        "TCN execution-ready inference xong rows=%s test_rows=%s windows_per_sec=%.2f output=%s.",
+        "Temporal execution-ready inference xong rows=%s test_rows=%s windows_per_sec=%.2f output=%s.",
         prediction_rows,
         test_rows,
         rows_per_second,
@@ -216,18 +219,39 @@ def main() -> None:
     )
 
 
-def load_tcn_checkpoint(checkpoint_path: Path, infer_cfg: dict[str, Any], *, device: torch.device) -> tuple[nn.Module, TemporalFeatureScaler | None, dict[str, int]]:
+def load_temporal_checkpoint(checkpoint_path: Path, infer_cfg: dict[str, Any], *, device: torch.device) -> tuple[nn.Module, TemporalFeatureScaler | None, dict[str, object]]:
     payload = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
     state_dict = payload.get("state_dict")
     if state_dict is None:
         raise RuntimeError(f"Checkpoint khong co state_dict: {checkpoint_path}")
     model_key = str(payload.get("model_key", "tcn"))
-    if model_key != "tcn":
-        raise RuntimeError(f"Stage 3.9 chi ho tro TCN checkpoint, nhan duoc model_key={model_key}.")
     levels = int(payload.get("levels", infer_cfg.get("levels", 10)))
     window = int(payload.get("window", infer_cfg.get("window", 100)))
-    hidden_dim = infer_hidden_dim(state_dict, default=int(infer_cfg.get("hidden_dim", 64)))
-    model = TemporalCNN(input_dim=levels * 4, hidden_dim=hidden_dim)
+    input_dim = levels * 4
+    model_config = dict(payload.get("model_config") or {})
+    if model_key == "tcn":
+        model_config = {"input_dim": input_dim, "hidden_dim": infer_hidden_dim(state_dict, default=int(model_config.get("hidden_dim", infer_cfg.get("hidden_dim", 64))))}
+        model = TemporalCNN(**model_config)
+    elif model_key in {"deeplob", "deeplob_faithful_lite"}:
+        model_config = {
+            "input_dim": input_dim,
+            "conv_channels": int(model_config.get("conv_channels", infer_deeplob_conv_channels(state_dict, default=int(infer_cfg.get("deeplob_conv_channels", 16))))),
+            "inception_channels": int(model_config.get("inception_channels", infer_deeplob_inception_channels(state_dict, default=int(infer_cfg.get("deeplob_inception_channels", 32))))),
+            "hidden_dim": int(model_config.get("hidden_dim", infer_deeplob_hidden_dim(state_dict, default=int(infer_cfg.get("hidden_dim", 64))))),
+        }
+        model = DeepLOB(**model_config)
+    elif model_key == "lob_transformer":
+        model_config = {
+            "input_dim": input_dim,
+            "conv_channels": int(model_config.get("conv_channels", infer_deeplob_conv_channels(state_dict, default=int(infer_cfg.get("transformer_conv_channels", 16))))),
+            "inception_channels": int(model_config.get("inception_channels", infer_deeplob_inception_channels(state_dict, default=int(infer_cfg.get("transformer_inception_channels", 32))))),
+            "n_heads": int(model_config.get("n_heads", infer_cfg.get("transformer_heads", 4))),
+            "n_layers": int(model_config.get("n_layers", infer_cfg.get("transformer_layers", 1))),
+            "dropout": float(model_config.get("dropout", infer_cfg.get("transformer_dropout", 0.1))),
+        }
+        model = LOBTransformerLite(**model_config)
+    else:
+        raise RuntimeError(f"Temporal checkpoint model_key khong ho tro: {model_key}")
     model.load_state_dict(state_dict)
     model.to(device)
     model.eval()
@@ -238,13 +262,41 @@ def load_tcn_checkpoint(checkpoint_path: Path, infer_cfg: dict[str, Any], *, dev
             mean=np.asarray(scaler_payload["mean"], dtype=np.float32),
             std=np.asarray(scaler_payload["std"], dtype=np.float32),
         )
-    return model, scaler, {"levels": levels, "window": window, "hidden_dim": hidden_dim}
+    metadata: dict[str, object] = {"model_key": model_key, "levels": levels, "window": window, "model_config": model_config}
+    metadata.update(model_config)
+    return model, scaler, metadata
+
+
+def load_tcn_checkpoint(checkpoint_path: Path, infer_cfg: dict[str, Any], *, device: torch.device) -> tuple[nn.Module, TemporalFeatureScaler | None, dict[str, object]]:
+    """Backward-compatible wrapper for tests and older scripts."""
+    return load_temporal_checkpoint(checkpoint_path, infer_cfg, device=device)
 
 
 def infer_hidden_dim(state_dict: dict[str, torch.Tensor], *, default: int) -> int:
     first_conv = state_dict.get("net.0.weight")
     if first_conv is not None and first_conv.ndim >= 1:
         return int(first_conv.shape[0])
+    return default
+
+
+def infer_deeplob_conv_channels(state_dict: dict[str, torch.Tensor], *, default: int) -> int:
+    first_conv = state_dict.get("conv1.0.weight")
+    if first_conv is not None and first_conv.ndim >= 1:
+        return int(first_conv.shape[0])
+    return default
+
+
+def infer_deeplob_inception_channels(state_dict: dict[str, torch.Tensor], *, default: int) -> int:
+    first_inception = state_dict.get("inception_1.0.weight")
+    if first_inception is not None and first_inception.ndim >= 1:
+        return int(first_inception.shape[0])
+    return default
+
+
+def infer_deeplob_hidden_dim(state_dict: dict[str, torch.Tensor], *, default: int) -> int:
+    recurrent = state_dict.get("temporal.weight_hh_l0")
+    if recurrent is not None and recurrent.ndim == 2:
+        return int(recurrent.shape[1])
     return default
 
 
@@ -489,7 +541,7 @@ def write_stage39_inference_audit(
     rows_per_second: float,
 ) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
-    text = f"""# Audit Stage 3.9: TCN GPU Execution-Ready Inference
+    text = f"""# Audit Temporal GPU Execution-Ready Inference
 
 - `run_id`: `{run_id}`
 - Model: `{model_label}`

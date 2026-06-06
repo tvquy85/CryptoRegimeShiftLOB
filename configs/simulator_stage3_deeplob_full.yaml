@@ -1,0 +1,5 @@
+inherits: configs/simulator.yaml
+model_label: deeplob_cnn_lstm_stage3_full
+prediction_source: data/splits/splits_btc_stage3_purged.parquet
+prediction_output: data/predictions/predictions_stage3_deeplob_full_execution_ready.parquet
+policy_tuning_sample_rows: 5000000

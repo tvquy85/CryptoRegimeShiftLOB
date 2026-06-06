@@ -25,9 +25,10 @@ def main() -> None:
     config = load_config(args.config)
     root = project_root(config)
     logger = configure_logging(resolve_path(config, f"outputs/logs/{args.run_id}/report.log"))
-    artifacts = assemble_result_pack(root, stage=args.stage)
     tables = resolve_path(config, "outputs/tables")
-    paper = resolve_path(config, "outputs/paper_assets")
+    paper = resolve_path(config, str(config.get("paper_assets_output", "outputs/paper_assets")))
+    paper.mkdir(parents=True, exist_ok=True)
+    artifacts = assemble_result_pack(root, stage=args.stage, paper_assets_dir=paper, tables_dir=tables)
     artifact_ns = artifact_namespace(config)
     stress_path = _prefer_existing(
         stage_table_path(tables, "table_stress_grid_tuned", args.stage, namespace=artifact_ns),

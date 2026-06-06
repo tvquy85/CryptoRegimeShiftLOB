@@ -1,4 +1,6 @@
 inherits: configs/models.yaml
+rsep_grid_config: configs/rsep_grid.yaml
+stress_grid_config: configs/stress_grid.yaml
 simulator:
   latency_events: 1
   fee_bps: 1.0
@@ -38,4 +40,3 @@ stress_grid:
     - 1.0
     - 0.75
     - 0.5
-

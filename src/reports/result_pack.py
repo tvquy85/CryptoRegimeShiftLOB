@@ -6,9 +6,16 @@ from reports.make_tables import build_dataset_stats, copy_or_empty_csv, copy_sym
 from utils.artifacts import stage_table_path
 
 
-def assemble_result_pack(project_root: Path, *, stage: str | None = None) -> dict[str, Path]:
-    paper = project_root / "outputs" / "paper_assets"
-    tables = project_root / "outputs" / "tables"
+def assemble_result_pack(
+    project_root: Path,
+    *,
+    stage: str | None = None,
+    paper_assets_dir: Path | None = None,
+    tables_dir: Path | None = None,
+) -> dict[str, Path]:
+    paper = paper_assets_dir or project_root / "outputs" / "paper_assets"
+    tables = tables_dir or project_root / "outputs" / "tables"
+    paper.mkdir(parents=True, exist_ok=True)
     dataset_stats = build_dataset_stats(
         _dataset_audit_sources(project_root, tables),
         tables / "table_dataset_stats_stage3_by_asset.csv",

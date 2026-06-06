@@ -1,0 +1,35 @@
+version: 1
+description: "Default RSEP benchmark grid. Lambda values are singleton benchmark constants; theta_edge is selected on validation."
+lambda_grid:
+  lambda_latency:
+    - 0.25
+  lambda_liquidity:
+    - 0.25
+  lambda_adverse:
+    - 0.25
+  lambda_regime:
+    - 0.15
+theta_edge_grid:
+  source: positive_validation_margin_quantiles
+  include_zero: true
+  quantiles:
+    - 0.50
+    - 0.60
+    - 0.70
+    - 0.80
+    - 0.90
+    - 0.95
+    - 0.975
+    - 0.99
+validation_objective: max_net_pnl_with_min_trades_and_min_trade_days
+min_trade_days: 5
+min_trades_rule: "max(1000, floor(0.0005 * n_valid_rows_used))"
+selected_on: validation_split_only
+test_usage: final_reporting_only
+ablation_policy:
+  RSEP-full: "Use all configured lambda values and validation-selected theta_edge."
+  RSEP-no-latency-risk: "Set lambda_latency=0.0."
+  RSEP-no-liquidity-risk: "Set lambda_liquidity=0.0."
+  RSEP-no-adverse-risk: "Set lambda_adverse=0.0."
+  RSEP-no-regime-penalty: "Set lambda_regime=0.0."
+  RSEP-no-cost-gate: "Explicit opt-in diagnostic only; not part of the default main ablation."

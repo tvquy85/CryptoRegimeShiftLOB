@@ -98,7 +98,7 @@ def main() -> None:
                 index=False,
             )
             by_regime.to_csv(tables / "table_forecasting_by_regime_xgboost_stage2.csv", index=False)
-    if args.stage == "stage_3_full_scale":
+    if namespace or args.stage == "stage_3_full_scale":
         overall_table.to_csv(stage_table_path(tables, "table_forecasting_overall", args.stage, namespace=namespace), index=False)
         by_regime.to_csv(stage_table_path(tables, "table_forecasting_by_regime", args.stage, namespace=namespace), index=False)
         overall_table.to_csv(model_stage_table_path(tables, "table_forecasting_overall", args.stage, model_label, namespace=namespace), index=False)

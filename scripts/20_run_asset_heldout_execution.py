@@ -19,10 +19,13 @@ from evaluation.trading_eval import trading_pack
 from features.returns_labels import class_return_means_from_parquet
 from models.tabular_baselines import predict_probabilities
 from policies.tuning import (
+    apply_rsep_grid_defaults,
     actions_for_selected_policy,
     edge_threshold_grid,
     naive_threshold_grid,
     rsep_base_required_edge,
+    rsep_theta_grid_options,
+    rsep_tuning_metadata,
     tune_policy,
 )
 from simulator.market_order_sim import ExecutionConfig, simulate_signals
@@ -31,6 +34,7 @@ from utils.config import load_config, project_root, resolve_path
 from utils.execution_columns import execution_columns
 from utils.io import read_filtered_frame, write_frame, write_run_metadata
 from utils.logging import configure_logging
+from utils.stress_grid import load_stress_grid, stress_grid_source
 
 
 PREDICTION_COLUMNS = {"prob_down", "prob_flat", "prob_up", "pred_label"}
@@ -51,6 +55,7 @@ def main() -> None:
     if not target_predictions.exists():
         raise FileNotFoundError(f"Khong tim thay target predictions: {target_predictions}")
     validate_required_columns(target_predictions, execution_columns(include_split=True), "target_predictions")
+    model_label = args.model_label or f"asset_{args.direction}_sgd"
 
     bundle = joblib.load(checkpoint)
     source_input = resolve_model_input_path(source_config)
@@ -71,13 +76,19 @@ def main() -> None:
     valid_rows_used = int(len(valid))
 
     sim_cfg = ExecutionConfig(**target_config.get("simulator", source_config.get("simulator", {})))
-    rsep_cfg = target_config.get("policies", source_config.get("policies", {})).get("rsep", {})
+    target_stress_grid = load_stress_grid(target_config)
+    stress_grid = target_stress_grid or load_stress_grid(source_config)
+    stress_source = stress_grid_source(target_config) if target_stress_grid else stress_grid_source(source_config)
+    rsep_grid = load_rsep_grid_config(target_config)
+    rsep_cfg = apply_rsep_grid_defaults(target_config.get("policies", source_config.get("policies", {})).get("rsep", {}), rsep_grid)
     selected, tuning_rows = tune_asset_heldout_policies(
         valid,
         class_returns,
         sim_cfg,
         rsep_cfg,
         args.direction,
+        rsep_grid,
+        model_label=model_label,
         valid_rows_used=valid_rows_used,
     )
     del valid
@@ -103,6 +114,7 @@ def main() -> None:
         args.source_symbol,
         args.target_symbol,
         source_config,
+        model_label,
     )
     bootstrap = paired_day_bootstrap(
         selected_trades.get("RSEP-full", pd.DataFrame()),
@@ -114,10 +126,11 @@ def main() -> None:
         sim_cfg,
         rsep_cfg,
         selected["RSEP-full"].threshold,
-        target_config.get("stress_grid", source_config.get("stress_grid", {})),
+        stress_grid,
         args.direction,
         args.source_symbol,
         args.target_symbol,
+        model_label,
     )
     del target
     gc.collect()
@@ -127,53 +140,59 @@ def main() -> None:
     upsert_csv(
         tables_dir / "table_asset_heldout_policy_tuning_stage3.csv",
         pd.DataFrame(tuning_rows),
-        key_columns=["direction", "policy", "threshold"],
+        key_columns=["direction", "model", "policy", "threshold"],
     )
     upsert_csv(
         tables_dir / "table_asset_heldout_execution_stage3.csv",
         pd.DataFrame(test_rows),
-        key_columns=["direction", "policy"],
+        key_columns=["direction", "model", "policy"],
     )
     if by_regime_rows:
         upsert_csv(
             tables_dir / "table_asset_heldout_execution_by_regime_stage3.csv",
             pd.concat(by_regime_rows, ignore_index=True),
-            key_columns=["direction", "policy", "regime"],
+            key_columns=["direction", "model", "policy", "regime"],
         )
     bootstrap_row = {
         "direction": args.direction,
         "source_symbol": args.source_symbol,
         "target_symbol": args.target_symbol,
-        "model": f"asset_{args.direction}_sgd",
+        "model": model_label,
         **bootstrap,
     }
     upsert_csv(
         tables_dir / "table_asset_heldout_rsep_bootstrap_stage3.csv",
         pd.DataFrame([bootstrap_row]),
-        key_columns=["direction"],
+        key_columns=["direction", "model"],
     )
     if not stress.empty:
         upsert_csv(
             tables_dir / "table_asset_heldout_stress_stage3.csv",
             stress,
-            key_columns=["direction", "policy", "stress_axis", "level"],
+            key_columns=["direction", "model", "policy", "stress_axis", "level"],
         )
     if not robustness.empty:
         upsert_csv(
             tables_dir / "table_asset_heldout_robustness_stage3.csv",
             robustness,
-            key_columns=["direction", "policy", "stress_axis"],
+            key_columns=["direction", "model", "policy", "stress_axis"],
         )
 
     tuned_path = root / "configs" / "tuned_policy_asset_heldout_stage3.yaml"
     tuned_config = load_existing_yaml(tuned_path)
-    tuned_config.setdefault("directions", {})[args.direction] = {
+    tuned_config.setdefault("directions", {})[f"{args.direction}:{model_label}"] = {
         "source_symbol": args.source_symbol,
         "target_symbol": args.target_symbol,
+        "model_label": model_label,
         "checkpoint": str(checkpoint),
         "target_predictions": str(target_predictions),
         "class_returns_source_train": class_returns,
         "selected_thresholds": {policy: result.threshold for policy, result in selected.items()},
+        "rsep_tuning": rsep_tuning_metadata(
+            rsep_grid,
+            rsep_cfg,
+            selected_theta=selected.get("RSEP-full").threshold if selected.get("RSEP-full") else None,
+        ),
         "validation_objective": "source_valid_max_net_pnl_with_min_trades_and_min_trade_days",
         "valid_rows_used_for_tuning": valid_rows_used,
         "target_test_rows": target_rows,
@@ -198,12 +217,21 @@ def main() -> None:
         },
         extra={
             "direction": args.direction,
+            "model_label": model_label,
             "source_symbol": args.source_symbol,
             "target_symbol": args.target_symbol,
             "valid_rows_used_for_tuning": valid_rows_used,
             "target_test_rows": target_rows,
             "selected_thresholds": {policy: result.threshold for policy, result in selected.items()},
+            "rsep_tuning": rsep_tuning_metadata(
+                rsep_grid,
+                rsep_cfg,
+                selected_theta=selected.get("RSEP-full").threshold if selected.get("RSEP-full") else None,
+            ),
             "bootstrap_rsep_vs_cost_aware": bootstrap,
+            "stress_grid_source": stress_source,
+            "stress_grid": stress_grid,
+            "stress_protocol": "fixed target predictions and fixed selected thresholds; one execution axis perturbed at a time",
         },
     )
     logger.info("Asset-held-out execution xong cho %s; target rows=%s.", args.direction, target_rows)
@@ -220,6 +248,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--target-predictions", required=True)
     parser.add_argument("--run-id", required=True)
     parser.add_argument("--stage", default="stage_3_full_scale")
+    parser.add_argument("--model-label", default=None)
     return parser.parse_args()
 
 
@@ -267,14 +296,24 @@ def tune_asset_heldout_policies(
     sim_cfg: ExecutionConfig,
     rsep_cfg: dict[str, float],
     direction: str,
+    rsep_grid: dict[str, object],
+    model_label: str | None = None,
     *,
     valid_rows_used: int,
 ) -> tuple[dict[str, object], list[dict[str, object]]]:
+    row_model = model_label or f"asset_{direction}_sgd"
     rsep_required = rsep_base_required_edge(valid, rsep_cfg, sim_cfg.fee_bps)
+    rsep_quantiles, rsep_include_zero = rsep_theta_grid_options(rsep_grid)
     grids = {
         "naive_threshold": naive_threshold_grid(),
         "cost_aware_threshold": edge_threshold_grid(valid, class_returns),
-        "RSEP-full": edge_threshold_grid(valid, class_returns, rsep_base_required_edge=rsep_required),
+        "RSEP-full": edge_threshold_grid(
+            valid,
+            class_returns,
+            rsep_base_required_edge=rsep_required,
+            quantiles=rsep_quantiles,
+            include_zero=rsep_include_zero,
+        ),
     }
     selected = {}
     candidate_rows: list[dict[str, object]] = []
@@ -291,7 +330,7 @@ def tune_asset_heldout_policies(
         )
         selected[policy] = best
         for result in results:
-            row = result.as_row(f"asset_{direction}_sgd", selected=result == best)
+            row = result.as_row(row_model, selected=result == best)
             row["direction"] = direction
             row["tuning_split"] = "source_valid"
             candidate_rows.append(row)
@@ -308,7 +347,9 @@ def evaluate_on_target(
     source_symbol: str,
     target_symbol: str,
     config: dict[str, object],
+    model_label: str | None = None,
 ) -> tuple[list[dict[str, object]], list[pd.DataFrame], dict[str, pd.DataFrame], dict[str, Path]]:
+    row_model = model_label or f"asset_{direction}_sgd"
     test_rows: list[dict[str, object]] = []
     by_regime_rows: list[pd.DataFrame] = []
     selected_trades: dict[str, pd.DataFrame] = {}
@@ -327,19 +368,19 @@ def evaluate_on_target(
         trades = simulate_signals(target, actions, sim_cfg, hold_events=hold_events)
         trade_path = resolve_path(
             config,
-            f"data/backtests/asset_{direction}_{policy.lower().replace('-', '_')}_tuned_trades.parquet",
+            f"data/backtests/{row_model}_{policy.lower().replace('-', '_')}_tuned_trades.parquet",
         )
         write_frame(trades, trade_path)
         trade_paths[f"{policy}_trades"] = trade_path
         selected_trades[policy] = trades
-        overall, by_regime = trading_pack(f"asset_{direction}_{policy}_tuned", trades)
+        overall, by_regime = trading_pack(f"{row_model}_{policy}_tuned", trades)
         row = overall.iloc[0].to_dict()
         row.update(
             {
                 "direction": direction,
                 "source_symbol": source_symbol,
                 "target_symbol": target_symbol,
-                "model": f"asset_{direction}_sgd",
+                "model": row_model,
                 "policy": policy,
                 "threshold": best.threshold,
                 "tuning_split": "source_valid",
@@ -349,7 +390,7 @@ def evaluate_on_target(
         if not by_regime.empty:
             by_regime.insert(0, "target_symbol", target_symbol)
             by_regime.insert(0, "source_symbol", source_symbol)
-            by_regime.insert(0, "model", f"asset_{direction}_sgd")
+            by_regime.insert(0, "model", row_model)
             by_regime.insert(0, "direction", direction)
             by_regime["policy"] = policy
             by_regime["threshold"] = best.threshold
@@ -367,32 +408,34 @@ def run_rsep_stress(
     direction: str,
     source_symbol: str,
     target_symbol: str,
+    model_label: str | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
+    row_model = model_label or f"asset_{direction}_sgd"
     if not stress_grid:
         return pd.DataFrame(), pd.DataFrame()
     rows: list[dict[str, object]] = []
     hold_events = int(target["label_horizon_events"].iloc[0])
     policy_cfg = {**rsep_cfg, "theta_edge": threshold}
+    base_actions = actions_for_selected_policy(
+        target,
+        class_returns,
+        sim_cfg,
+        "RSEP-full",
+        threshold,
+        rsep_cfg=policy_cfg,
+    )
     for axis, levels in stress_grid.items():
         for level in levels:
             stressed = apply_stress(sim_cfg, **{axis: level})
-            actions = actions_for_selected_policy(
-                target,
-                class_returns,
-                stressed,
-                "RSEP-full",
-                threshold,
-                rsep_cfg=policy_cfg,
-            )
-            trades = simulate_signals(target, actions, stressed, hold_events=hold_events)
-            overall, _ = trading_pack(f"asset_{direction}_RSEP-full_stress", trades)
+            trades = simulate_signals(target, base_actions, stressed, hold_events=hold_events)
+            overall, _ = trading_pack(f"{row_model}_RSEP-full_stress", trades)
             row = overall.iloc[0].drop(labels=["policy"]).to_dict()
             row.update(
                 {
                     "direction": direction,
                     "source_symbol": source_symbol,
                     "target_symbol": target_symbol,
-                    "model": f"asset_{direction}_sgd",
+                    "model": row_model,
                     "policy": "RSEP-full",
                     "stress_axis": axis,
                     "level": float(level),
@@ -410,7 +453,7 @@ def run_rsep_stress(
                     "direction": direction,
                     "source_symbol": source_symbol,
                     "target_symbol": target_symbol,
-                    "model": f"asset_{direction}_sgd",
+                    "model": row_model,
                     "policy": "RSEP-full",
                     "stress_axis": axis,
                     "robustness_auc": robustness_auc(subset, "level"),
@@ -424,7 +467,7 @@ def run_rsep_stress(
                 "direction": direction,
                 "source_symbol": source_symbol,
                 "target_symbol": target_symbol,
-                "model": f"asset_{direction}_sgd",
+                "model": row_model,
                 "policy": "RSEP-full",
                 "stress_axis": "latency_half_life",
                 "robustness_auc": latency_half_life(latency_curve),
@@ -454,6 +497,13 @@ def upsert_csv(path: Path, rows: pd.DataFrame, *, key_columns: list[str]) -> Non
 
 
 def load_existing_yaml(path: Path) -> dict[str, object]:
+    if not path.exists():
+        return {}
+    return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+
+
+def load_rsep_grid_config(config: dict[str, object]) -> dict[str, object]:
+    path = resolve_path(config, str(config.get("rsep_grid_config", "configs/rsep_grid.yaml")))
     if not path.exists():
         return {}
     return yaml.safe_load(path.read_text(encoding="utf-8")) or {}

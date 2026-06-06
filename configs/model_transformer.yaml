@@ -1,0 +1,23 @@
+inherits: configs/models_stage3_temporal_gpu.yaml
+model_name: lob_transformer
+temporal:
+  model_name: lob_transformer
+  model_labels:
+    lob_transformer: lob_transformer_stage3_pilot
+  prediction_outputs:
+    lob_transformer: data/predictions/predictions_stage3_lob_transformer_pilot.parquet
+  levels: 10
+  window: 100
+  hidden_dim: 64
+  transformer_conv_channels: 16
+  transformer_inception_channels: 32
+  transformer_heads: 4
+  transformer_layers: 1
+  transformer_dropout: 0.1
+  train_batch_windows: 512
+  eval_batch_windows: 1024
+  learning_rate: 0.0005
+  weight_decay: 0.0001
+  epochs: 5
+  early_stopping_patience: 2
+  mixed_precision: true

@@ -1,0 +1,20 @@
+inherits: configs/models_stage3_temporal_gpu.yaml
+model_name: deeplob
+temporal:
+  model_name: deeplob
+  model_labels:
+    deeplob: deeplob_stage3_pilot
+  prediction_outputs:
+    deeplob: data/predictions/predictions_stage3_deeplob_pilot.parquet
+  levels: 10
+  window: 100
+  hidden_dim: 64
+  deeplob_conv_channels: 16
+  deeplob_inception_channels: 32
+  train_batch_windows: 1024
+  eval_batch_windows: 2048
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  epochs: 5
+  early_stopping_patience: 2
+  mixed_precision: true

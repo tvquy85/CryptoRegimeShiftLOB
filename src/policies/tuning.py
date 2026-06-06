@@ -36,7 +36,17 @@ def naive_threshold_grid() -> list[float]:
     return [round(float(value), 2) for value in np.arange(0.50, 0.951, 0.05)]
 
 
-def edge_threshold_grid(frame: pd.DataFrame, class_returns: dict[str, float], *, rsep_base_required_edge: pd.Series | None = None) -> list[float]:
+DEFAULT_RSEP_THETA_QUANTILES = [0.50, 0.60, 0.70, 0.80, 0.90, 0.95, 0.975, 0.99]
+
+
+def edge_threshold_grid(
+    frame: pd.DataFrame,
+    class_returns: dict[str, float],
+    *,
+    rsep_base_required_edge: pd.Series | None = None,
+    quantiles: list[float] | None = None,
+    include_zero: bool = True,
+) -> list[float]:
     edge = expected_edge_from_probabilities(frame, class_returns).abs()
     if rsep_base_required_edge is None:
         base = frame["rel_spread"] + frame.get("label_fee_bps", 1.0) / 10000.0
@@ -46,9 +56,51 @@ def edge_threshold_grid(frame: pd.DataFrame, class_returns: dict[str, float], *,
     positive_margin = positive_margin[positive_margin > 0.0]
     if positive_margin.empty:
         return [0.0]
-    quantiles = [0.50, 0.60, 0.70, 0.80, 0.90, 0.95, 0.975, 0.99]
-    values = [0.0, *[float(positive_margin.quantile(q)) for q in quantiles]]
+    current_quantiles = DEFAULT_RSEP_THETA_QUANTILES if quantiles is None else quantiles
+    values = ([0.0] if include_zero else []) + [float(positive_margin.quantile(q)) for q in current_quantiles]
     return sorted({round(value, 12) for value in values})
+
+
+def apply_rsep_grid_defaults(rsep_cfg: dict[str, float], grid_cfg: dict[str, object]) -> dict[str, float]:
+    merged = dict(rsep_cfg or {})
+    lambda_grid = grid_cfg.get("lambda_grid", {}) if isinstance(grid_cfg, dict) else {}
+    if isinstance(lambda_grid, dict):
+        for key, values in lambda_grid.items():
+            if key in merged:
+                continue
+            if isinstance(values, list) and len(values) == 1:
+                merged[key] = float(values[0])
+    return merged
+
+
+def rsep_theta_grid_options(grid_cfg: dict[str, object]) -> tuple[list[float], bool]:
+    theta_cfg = grid_cfg.get("theta_edge_grid", {}) if isinstance(grid_cfg, dict) else {}
+    if not isinstance(theta_cfg, dict):
+        return DEFAULT_RSEP_THETA_QUANTILES, True
+    quantiles = theta_cfg.get("quantiles", DEFAULT_RSEP_THETA_QUANTILES)
+    include_zero = bool(theta_cfg.get("include_zero", True))
+    return [float(value) for value in quantiles], include_zero
+
+
+def rsep_tuning_metadata(grid_cfg: dict[str, object], rsep_cfg: dict[str, float], *, selected_theta: float | None) -> dict[str, object]:
+    quantiles, include_zero = rsep_theta_grid_options(grid_cfg)
+    lambdas = {
+        "lambda_latency": float(rsep_cfg.get("lambda_latency", 0.25)),
+        "lambda_liquidity": float(rsep_cfg.get("lambda_liquidity", 0.25)),
+        "lambda_adverse": float(rsep_cfg.get("lambda_adverse", 0.25)),
+        "lambda_regime": float(rsep_cfg.get("lambda_regime", 0.15)),
+    }
+    objective = "max_net_pnl_with_min_trades_and_min_trade_days"
+    if isinstance(grid_cfg, dict):
+        objective = str(grid_cfg.get("validation_objective", objective))
+    return {
+        "selected_parameters": {**lambdas, "theta_edge": selected_theta},
+        "lambda_selection": "fixed_singleton_grid",
+        "theta_edge_selection": "validation_positive_margin_quantiles",
+        "theta_edge_include_zero": include_zero,
+        "theta_edge_quantiles": quantiles,
+        "validation_objective": objective,
+    }
 
 
 def tune_policy(

@@ -8,9 +8,10 @@ split:
   strategy: chronological
   train_fraction: 0.6
   valid_fraction: 0.2
+  purge_horizon_events: true
+  purge_gap_events: 50
 stress_axes:
   - fee_bps
   - latency_events
   - spread_multiplier
   - depth_multiplier
-
