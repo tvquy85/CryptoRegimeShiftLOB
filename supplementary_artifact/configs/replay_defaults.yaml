@@ -1,0 +1,17 @@
+trade_notional: 1000.0
+fee_bps: 1.0
+latency_rows: 1
+hold_rows: 50
+depth_levels: 20
+partial_fill: true
+min_fill_ratio: 0.5
+spread_multiplier: 1.0
+depth_multiplier: 1.0
+cooldown_rows: 3
+rsep:
+  lambda_latency: 0.25
+  lambda_liquidity: 0.25
+  lambda_adverse: 0.25
+  lambda_regime: 0.15
+  theta_edge: 0.0
+

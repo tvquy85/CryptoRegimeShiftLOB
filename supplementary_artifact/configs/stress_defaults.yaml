@@ -1,0 +1,9 @@
+one_axis_at_a_time: true
+no_retraining: true
+no_retuning: true
+fixed_predictions: true
+fee_bps: [0.0, 1.0, 2.0, 5.0, 10.0]
+latency_rows: [0, 1, 5, 10]
+spread_multiplier: [1.0, 1.5, 2.0]
+depth_multiplier: [1.0, 0.75, 0.5]
+

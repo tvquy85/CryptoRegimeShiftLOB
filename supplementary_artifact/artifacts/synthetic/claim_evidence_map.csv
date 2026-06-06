@@ -1,0 +1,9 @@
+paper_claim,paper_location,evidence_artifact,public_status,limitation
+Full-year BTC/ETH L2 benchmark,Table I,dataset summary,requires licensed data,raw data not redistributed
+Pipeline can parse Crypto Lake-style L2 snapshots,Sec. VIII,raw_sample/schema_report.json,raw_sample optional,not paper evidence
+Cost-aware ternary labels,Sec. III,label_summary.csv,PASS_SYNTHETIC,config-defined thresholds
+Visible-depth replay,Sec. V,replay_summary.csv,PASS_SYNTHETIC,L2 approximation
+RSEP diagnostic gate,Sec. V,rsep_summary.csv,PASS_SYNTHETIC,not a trading strategy
+Stress diagnostics,Sec. VI,stress_summary.csv,PASS_SYNTHETIC,one-axis stress
+Day-level bootstrap,Sec. VI,bootstrap_summary.csv,PASS_SYNTHETIC,day-level only
+BTC<->ETH transfer,Sec. VII,transfer_summary.csv,PASS_SYNTHETIC,synthetic only

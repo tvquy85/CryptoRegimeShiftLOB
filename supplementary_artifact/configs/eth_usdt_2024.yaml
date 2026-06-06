@@ -1,0 +1,21 @@
+mode: full
+asset: ETH-USDT
+source: Crypto Lake licensed Level-2 snapshots
+period: "2024-01-01 to 2024-12-31"
+levels_per_side: 20
+paths:
+  raw_glob: data/external/cryptolake/ETH-USDT/book/2024/*.parquet
+  artifact_dir: artifacts/full/ETH-USDT
+license:
+  raw_data_redistributed: false
+  user_must_provide_data: true
+labels:
+  horizon_rows: 50
+  fee_bps: 1.0
+  slippage_buffer_multiplier: 0.5
+splits:
+  train_ratio: 0.6
+  valid_ratio: 0.2
+  test_ratio: 0.2
+  purge_gap_rows: 50
+

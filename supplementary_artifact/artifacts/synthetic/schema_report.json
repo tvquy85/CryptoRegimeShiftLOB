@@ -1,0 +1,24 @@
+{
+  "mode": "synthetic",
+  "rows": 4800,
+  "symbols": [
+    "BTC-USDT",
+    "ETH-USDT"
+  ],
+  "exchange": [
+    "BINANCE"
+  ],
+  "start_time": "2024-01-01 00:00:00+00:00",
+  "end_time": "2024-01-02 00:01:59.900000+00:00",
+  "levels_per_side": 20,
+  "duplicate_timestamps": 0,
+  "checks": {
+    "required_columns": "PASS",
+    "timestamp_parse": "PASS",
+    "timestamp_monotonic_by_symbol": "PASS",
+    "best_bid_less_than_best_ask": "PASS",
+    "non_negative_size": "PASS",
+    "bid_depth_monotonic": "PASS",
+    "ask_depth_monotonic": "PASS"
+  }
+}

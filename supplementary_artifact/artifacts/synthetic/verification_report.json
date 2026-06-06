@@ -1,0 +1,22 @@
+{
+  "mode": "synthetic",
+  "full_data_available": false,
+  "raw_sample_status": "ABSENT_ALLOWED",
+  "tables_checked": {
+    "artifacts\\synthetic\\schema_report.json": "PASS",
+    "artifacts\\synthetic\\features.parquet": "PASS",
+    "artifacts\\synthetic\\labels_regimes_splits.parquet": "PASS",
+    "artifacts\\synthetic\\predictions\\sgd_predictions.parquet": "PASS",
+    "artifacts\\synthetic\\tables\\prediction_metrics.csv": "PASS",
+    "artifacts\\synthetic\\tables\\replay_summary.csv": "PASS",
+    "artifacts\\synthetic\\tables\\rsep_summary.csv": "PASS",
+    "artifacts\\synthetic\\tables\\stress_summary.csv": "PASS",
+    "artifacts\\synthetic\\tables\\bootstrap_summary.csv": "PASS",
+    "artifacts\\synthetic\\tables\\transfer_summary.csv": "PASS"
+  },
+  "limitations": [
+    "Synthetic outputs do not reproduce paper numerical results.",
+    "Full numerical reproduction requires licensed Crypto Lake snapshots.",
+    "Raw-format sample, if present, verifies loader compatibility only."
+  ]
+}

@@ -1,0 +1,9 @@
+mode: raw-sample
+levels_per_side: 20
+raw_sample_source: user_supplied_not_packaged
+paths:
+  raw_glob: data/raw_sample/cryptolake_minimal/*.parquet
+  artifact_dir: artifacts/raw_sample
+schema:
+  require_two_assets: false
+

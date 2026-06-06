@@ -1,0 +1,8 @@
+directions:
+  - source: BTC-USDT
+    target: ETH-USDT
+  - source: ETH-USDT
+    target: BTC-USDT
+tuning_rule: source_validation_only
+target_test_used_for_tuning: false
+

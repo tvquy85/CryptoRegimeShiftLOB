@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use this artifact, cite the associated CryptoRegimeShift-LOB ICDM Applied Track submission."
+title: "CryptoRegimeShift-LOB Supplementary Artifact"
+authors:
+  - family-names: "Tran"
+    given-names: "Quy"
+version: "0.1.0"
+date-released: "2026-06-06"
+

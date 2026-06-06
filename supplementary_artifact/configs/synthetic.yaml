@@ -1,0 +1,49 @@
+mode: synthetic
+seed: 20260606
+assets: ["BTC-USDT", "ETH-USDT"]
+exchange: "BINANCE"
+levels_per_side: 20
+synthetic:
+  days: 2
+  rows_per_day: 1200
+  snapshot_interval_ms: 100
+  base_prices:
+    BTC-USDT: 60000.0
+    ETH-USDT: 3000.0
+  spread_bps_range: [1.0, 8.0]
+paths:
+  raw: data/synthetic/raw/book_snapshots.parquet
+  artifact_dir: artifacts/synthetic
+features:
+  past_windows: [10, 50, 100]
+  top_k_depth: [1, 5, 10, 20]
+labels:
+  horizon_rows: 50
+  fee_bps: 1.0
+  slippage_buffer_multiplier: 0.5
+  eps: 1.0e-9
+splits:
+  train_ratio: 0.5
+  valid_ratio: 0.25
+  test_ratio: 0.25
+  purge_gap_rows: 50
+replay:
+  trade_notional: 1000.0
+  fee_bps: 1.0
+  latency_rows: 1
+  hold_rows: 50
+  depth_levels: 20
+  partial_fill: true
+  min_fill_ratio: 0.5
+  spread_multiplier: 1.0
+  depth_multiplier: 1.0
+  cooldown_rows: 3
+stress:
+  fee_bps: [0.0, 1.0, 2.0, 5.0, 10.0]
+  latency_rows: [0, 1, 5, 10]
+  spread_multiplier: [1.0, 1.5, 2.0]
+  depth_multiplier: [1.0, 0.75, 0.5]
+bootstrap:
+  unit: day
+  n_bootstrap: 200
+

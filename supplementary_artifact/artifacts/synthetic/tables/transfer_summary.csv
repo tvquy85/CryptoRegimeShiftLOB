@@ -1,0 +1,3 @@
+direction,target_rows,target_accuracy_proxy,tuning_rule,target_test_used_for_tuning
+BTC-USDT_to_ETH-USDT,588,0.7023809523809523,source_validation_only,False
+ETH-USDT_to_BTC-USDT,588,0.532312925170068,source_validation_only,False

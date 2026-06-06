@@ -1,0 +1,5 @@
+unit: day
+n_bootstrap: 200
+seed: 20260606
+ci_percentiles: [2.5, 97.5]
+

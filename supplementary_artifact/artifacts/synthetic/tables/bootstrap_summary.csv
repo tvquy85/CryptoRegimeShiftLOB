@@ -1,0 +1,2 @@
+policy,n_days,n_bootstrap,net_pnl_mean,net_pnl_ci_low,net_pnl_ci_high
+cost_aware,1,200,-8.552106829704742,-8.552106829704744,-8.552106829704744
