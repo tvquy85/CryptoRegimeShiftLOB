@@ -1,6 +1,6 @@
 # CryptoRegimeShift-LOB
 
-Reviewer-facing artifact repository for the ICDM 2026 Applied Track paper:
+Reviewer-facing artifact repository for the ICDM 2026 Applied Track submission:
 
 **CryptoRegimeShift-LOB: Regime-Aware Forecast-to-Execution Evaluation for Crypto L2 Order Books**
 
@@ -10,7 +10,6 @@ of commercial Crypto Lake raw data.
 
 ## What This Repository Provides
 
-- Paper source and compiled PDF under `Paper_ICDM_2026/`.
 - Source code, configs, and tests for the L2 benchmark pipeline.
 - A public synthetic 20-level L2 sample for smoke testing.
 - A self-contained `supplementary_artifact/` package with commands, verifier,
@@ -61,7 +60,6 @@ RSEP diagnostics, stress tests, bootstrap summaries, and manifest checksums.
 
 | Result or check | Output | Command | Scope |
 |---|---|---|---|
-| Paper build | `Paper_ICDM_2026/main.pdf` | `cd Paper_ICDM_2026 && ..\tectonic.exe main.tex` | Public paper source; no raw data required. |
 | Synthetic end-to-end pipeline | `supplementary_artifact/artifacts/synthetic/` | `cd supplementary_artifact && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run_synthetic_end_to_end.ps1` | Public executable smoke path; validates code paths only. |
 | Synthetic table verifier | `supplementary_artifact/artifacts/synthetic/verification_report.json` | `cd supplementary_artifact && python scripts/09_verify_paper_tables.py --mode synthetic` | Public synthetic checks; does not reproduce paper numbers. |
 | Artifact verifier | `checksums.json` plus required public docs, configs, schema, sample data, and paper assets | `python scripts/verify_artifacts.py` | Public artifact surface and checksum verification. |
@@ -69,24 +67,6 @@ RSEP diagnostics, stress tests, bootstrap summaries, and manifest checksums.
 | Split audit artifact | `artifacts/split_audit.csv` and `outputs/paper_assets/table_19_chronological_split_audit.csv` | Saved paper artifact; regeneration requires licensed-data-derived split artifacts and the full pipeline scripts in `scripts/`. | Paper evidence for purged chronological splits. |
 | Claim-to-evidence map | `outputs/paper_assets/table_13_claim_to_evidence_map.csv` | Saved paper artifact; see `REPRODUCIBILITY.md` for the full evidence-pack command sequence. | Maps major claims to tables, checks, and limitations. |
 | Licensed full reproduction | Full BTC/ETH outputs under the documented data and output layout | `cd supplementary_artifact && make validate-full-data && make full && make verify-full` | Requires licensed Crypto Lake snapshots; no commercial raw data are redistributed. |
-
-## Paper Build
-
-The paper candidate is:
-
-```text
-Paper_ICDM_2026/main.tex
-Paper_ICDM_2026/main.pdf
-```
-
-To rebuild locally:
-
-```powershell
-cd Paper_ICDM_2026
-..\tectonic.exe main.tex
-```
-
-The committed `main.pdf` is the reviewer-facing 10-page Applied Track draft.
 
 ## Repository Layout
 
